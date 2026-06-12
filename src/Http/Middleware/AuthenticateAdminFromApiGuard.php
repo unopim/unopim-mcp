@@ -14,6 +14,10 @@ class AuthenticateAdminFromApiGuard
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (! config('auth.guards.api') || ! config('auth.guards.admin')) {
+            return $next($request);
+        }
+
         $user = $request->user('api');
 
         if ($user && ! auth()->guard('admin')->check()) {

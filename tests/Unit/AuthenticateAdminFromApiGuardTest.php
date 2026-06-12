@@ -28,6 +28,19 @@ it('leaves the admin guard untouched when no api user is present', function () {
     expect(Auth::guard('admin')->check())->toBeFalse();
 });
 
+it('passes through without error when the api or admin guard is undefined', function () {
+    config(['auth.guards.api' => null]);
+
+    $request = Request::create('/mcp/unopim', 'POST');
+    $request->setUserResolver(function ($guard = null) {
+        throw new RuntimeException('user resolver must not be called when guards are missing');
+    });
+
+    $response = (new AuthenticateAdminFromApiGuard)->handle($request, fn ($req) => response('ok'));
+
+    expect($response->getContent())->toBe('ok');
+});
+
 it('does not overwrite an already authenticated admin', function () {
     $sessionAdmin = Admin::factory()->create();
     $tokenAdmin = Admin::factory()->create();

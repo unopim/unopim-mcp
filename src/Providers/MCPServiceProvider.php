@@ -71,6 +71,8 @@ class MCPServiceProvider extends ServiceProvider
         // Aliases for backward compatibility if needed, though interfaces are preferred
         $this->app->alias(FileManagerInterface::class, FileManager::class);
         $this->app->alias(SkillExecutorInterface::class, SkillExecutor::class);
+
+        $this->configurePassportGuard();
     }
 
     /**
@@ -88,6 +90,10 @@ class MCPServiceProvider extends ServiceProvider
 
         Route::middleware($middlewares)->group(__DIR__.'/../Routes/mcp-routes.php');
 
+        Mcp::oauthRoutes();
+
+        $this->registerLoginRouteFallback();
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 MCPInspectorCommand::class,
@@ -96,5 +102,36 @@ class MCPServiceProvider extends ServiceProvider
                 PluginMakeCommand::class,
             ]);
         }
+    }
+
+    /**
+     * Passport defaults to the "web" guard, which UnoPim does not define.
+     * Admin sessions live on the "admin" guard, so the OAuth authorize
+     * flow must check that guard to recognize logged-in admins.
+     */
+    protected function configurePassportGuard(): void
+    {
+        $guard = config('passport.guard', 'web');
+
+        if (! config("auth.guards.{$guard}") && config('auth.guards.admin')) {
+            config(['passport.guard' => 'admin']);
+        }
+    }
+
+    /**
+     * Passport's authorize flow redirects guests to the framework-default
+     * "login" route, which UnoPim does not define — alias it to admin login.
+     */
+    protected function registerLoginRouteFallback(): void
+    {
+        $this->app->booted(function () {
+            if (Route::has('login') || ! Route::has('admin.session.create')) {
+                return;
+            }
+
+            Route::middleware('web')
+                ->get('login', fn () => redirect()->route('admin.session.create'))
+                ->name('login');
+        });
     }
 }

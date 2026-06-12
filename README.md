@@ -97,6 +97,21 @@ Add a new MCP server with the following settings:
 claude mcp add unopim-dev -- php artisan mcp:start unopim-dev
 ```
 
+### claude.ai — Remote Custom Connector (OAuth)
+
+No manual setup is required — the package registers everything at boot:
+OAuth discovery + dynamic client registration endpoints, the Passport
+`admin` guard binding, a `login` route alias to the admin login page, and
+the guard-bridge middleware that maps the Passport token user onto
+UnoPim's ACL (`bouncer()`).
+
+1. Make sure Passport keys exist: `php artisan passport:keys` (skip if already generated).
+2. In claude.ai go to **Settings > Connectors > Add custom connector**.
+3. Enter your MCP endpoint: `https://your-unopim-host/mcp/unopim`.
+4. Complete the OAuth flow — you are redirected to the UnoPim admin login, then back to claude.ai.
+
+Tool calls respect the connected admin's ACL permissions.
+
 ### Windsurf — `~/.windsurf/mcp.json`
 
 ```jsonc

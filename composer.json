@@ -20,7 +20,7 @@
     ],
     "require": {
         "php": "^8.2",
-        "laravel/mcp": "^0.5.1 || ^0.6 || ^0.7 || ^1.0"
+        "laravel/mcp": "^0.7.1 || ^0.8 || ^1.0"
     },
     "require-dev": {
         "orchestra/testbench": "^9.0|^10.0",

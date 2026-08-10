@@ -4,10 +4,14 @@ namespace Webkul\MCP\Tools\Catalog;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Validation\ValidationException;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Webkul\AdminApi\Http\Controllers\API\Catalog\ProductController;
 use Webkul\MCP\Tools\BaseMcpTool;
 use Webkul\Product\Repositories\ProductRepository;
+use Webkul\Product\Validator\ProductValuesValidator;
 
 class ProductUpsertTool extends BaseMcpTool
 {
@@ -22,7 +26,9 @@ class ProductUpsertTool extends BaseMcpTool
     public string $name = 'upsert_products';
 
     public function __construct(
-        protected ProductRepository $productRepository
+        protected ProductRepository $productRepository,
+        protected ProductController $productController,
+        protected ProductValuesValidator $valuesValidator,
     ) {}
 
     protected function execute(Request $request): Response
@@ -46,14 +52,7 @@ class ProductUpsertTool extends BaseMcpTool
                 $product = $this->productRepository->findOneByField('sku', $sku);
 
                 if ($product) {
-                    $updateData = [];
-                    if (isset($productData['values'])) {
-                        $updateData['values'] = $productData['values'];
-                    }
-
-                    if (! empty($updateData)) {
-                        $product = $this->productRepository->update($updateData, $product->id);
-                    }
+                    $product = $this->applyValues($product, $productData);
 
                     $results[] = ['id' => $product->id, 'sku' => $product->sku, 'action' => 'updated'];
                 } else {
@@ -68,9 +67,7 @@ class ProductUpsertTool extends BaseMcpTool
                     ]);
 
                     if (! empty($productData['values'])) {
-                        $product = $this->productRepository->update([
-                            'values' => $productData['values'],
-                        ], $product->id);
+                        $product = $this->applyValues($product, $productData);
                     }
 
                     $results[] = ['id' => $product->id, 'sku' => $product->sku, 'action' => 'created'];
@@ -78,6 +75,13 @@ class ProductUpsertTool extends BaseMcpTool
             }
 
             DB::commit();
+        } catch (ValidationException $e) {
+            DB::rollBack();
+
+            return Response::error(json_encode([
+                'message' => 'The submitted values are not valid; nothing was written.',
+                'errors'  => $e->validator->errors()->messages(),
+            ]));
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -85,6 +89,39 @@ class ProductUpsertTool extends BaseMcpTool
         }
 
         return Response::json(['success' => true, 'results' => $results]);
+    }
+
+    /**
+     * Write values through the same preparation the Admin REST API performs.
+     *
+     * Handing the payload straight to ProductRepository::update() skipped three
+     * things the controller does, and each failed silently while the tool still
+     * reported success:
+     *
+     *  - values replaced the stored ones instead of merging, so
+     *    AbstractType::update() resynced product_associations from a payload
+     *    that never carried them and emptied the links;
+     *  - option codes were never checked, so a value matching no attribute
+     *    option was accepted and stored;
+     *  - locale_specific was written for the current scope only, dropping every
+     *    other locale in the same payload.
+     *
+     * validateOnlyExistingSectionData() and patchProduct() are what
+     * SimpleProductController::partialUpdate() uses, so the tool and the REST
+     * endpoint now agree.
+     */
+    protected function applyValues($product, array $productData)
+    {
+        if (! empty($productData['values'])) {
+            $this->valuesValidator->validateOnlyExistingSectionData(
+                data: $productData['values'],
+                productId: $product->id,
+            );
+        }
+
+        Event::dispatch('catalog.product.update.before', $product->id);
+
+        return $this->productController->patchProduct($product, $productData);
     }
 
     /**

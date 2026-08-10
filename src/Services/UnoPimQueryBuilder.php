@@ -60,11 +60,11 @@ class UnoPimQueryBuilder
                 break;
 
             case 'whereIn':
-                $query->whereIn($field, (array) $value);
+                $query->whereIn($field, $this->listValue($value));
                 break;
 
             case 'whereNotIn':
-                $query->whereNotIn($field, (array) $value);
+                $query->whereNotIn($field, $this->listValue($value));
                 break;
 
             case 'like':
@@ -79,6 +79,30 @@ class UnoPimQueryBuilder
                 $query->where($field, 'like', '%'.$value);
                 break;
         }
+    }
+
+    /**
+     * Normalise the value of an IN / NOT IN filter into a list.
+     *
+     * The tool schema declares `value` as a string, so a client generating
+     * calls from the schema sends "a,b" for multiple values. Casting that
+     * straight to an array produced a single element that matched nothing, and
+     * returned an empty result set rather than an error, which reads as "these
+     * records do not exist". Arrays keep working for clients that send them.
+     *
+     * @return array<int, mixed>
+     */
+    protected function listValue(mixed $value): array
+    {
+        if (is_string($value)) {
+            $value = explode(',', $value);
+        }
+
+        return collect((array) $value)
+            ->map(fn ($item) => is_string($item) ? trim($item) : $item)
+            ->reject(fn ($item): bool => $item === '' || $item === null)
+            ->values()
+            ->all();
     }
 
     /**

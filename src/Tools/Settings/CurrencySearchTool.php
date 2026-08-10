@@ -71,7 +71,7 @@ class CurrencySearchTool extends BaseMcpTool
                     $schema->object([
                         'field'    => $schema->string()->description('The field to filter by (e.g., code, name).'),
                         'operator' => $schema->string()->description('The comparison operator.'),
-                        'value'    => $schema->string()->description('The value to compare against.'),
+                        'value'    => $schema->string()->description('The value to compare against. For IN and NOT IN, pass a comma-separated list ("a,b") or an array.'),
                     ])
                 ),
             'limit' => $schema->integer()

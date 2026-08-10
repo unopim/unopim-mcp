@@ -5,7 +5,10 @@ namespace Webkul\MCP\Tools\Dam;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Webkul\DAM\Models\Asset;
+use Webkul\DAM\Models\Directory;
 use Webkul\MCP\Tools\BaseMcpTool;
 
 class AssetGetTool extends BaseMcpTool
@@ -23,7 +26,8 @@ class AssetGetTool extends BaseMcpTool
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
-            'id' => ['required', 'integer'],
+            'id'                   => ['required', 'integer'],
+            'include_download_url' => ['nullable', 'boolean'],
         ]);
 
         $asset = Asset::with(['tags', 'properties', 'directories', 'resources'])
@@ -62,7 +66,39 @@ class AssetGetTool extends BaseMcpTool
                 ])->values()->all(),
             'created_at' => (string) $asset->created_at,
             'updated_at' => (string) $asset->updated_at,
-        ]);
+        ] + ($validated['include_download_url'] ?? false ? [
+            'download_url'            => $this->downloadUrl($asset),
+            'download_url_expires_in' => '10 minutes',
+        ] : []));
+    }
+
+    /**
+     * A time-limited download URL, the same way the DAM's own REST endpoint
+     * builds one: a presigned object URL on S3, a signed application route on
+     * the local disk. Expires after ten minutes, so it is for immediate use,
+     * not for storing in another system.
+     */
+    protected function downloadUrl(Asset $asset): ?string
+    {
+        $disk = Directory::getAssetDisk();
+
+        if (! Storage::disk($disk)->exists($asset->path)) {
+            return null;
+        }
+
+        if (config('filesystems.default') === 's3') {
+            return Storage::disk($disk)->temporaryUrl(
+                $asset->path,
+                now()->addMinutes(10),
+                ['ResponseContentDisposition' => 'attachment; filename="'.$asset->file_name.'"']
+            );
+        }
+
+        return URL::temporarySignedRoute(
+            'admin.api.dam.assets.private.download',
+            now()->addMinutes(10),
+            ['id' => $asset->id]
+        );
     }
 
     /**
@@ -74,6 +110,9 @@ class AssetGetTool extends BaseMcpTool
             'id' => $schema->integer()
                 ->description('The asset id (see search_assets).')
                 ->required(),
+            'include_download_url' => $schema->boolean()
+                ->description('Also return a time-limited download URL for the file (expires after 10 minutes).')
+                ->default(false),
         ];
     }
 }

@@ -36,17 +36,17 @@ class DevToolsTool extends BaseMcpTool
 
         try {
             $result = match ($action) {
-                'create_file'     => $this->skillExecutor->createFile($params['path'], $params['content']),
-                'read_file'       => $this->skillExecutor->readFile($params['path']),
-                'update_file'     => $this->skillExecutor->updateFile($params['path'], $params['content']),
-                'run_command'     => $this->skillExecutor->runCommand($params['command']),
+                'create_file' => $this->skillExecutor->createFile($params['path'], $params['content']),
+                'read_file' => $this->skillExecutor->readFile($params['path']),
+                'update_file' => $this->skillExecutor->updateFile($params['path'], $params['content']),
+                'run_command' => $this->skillExecutor->runCommand($params['command']),
                 'generate_plugin' => $this->skillExecutor->generatePlugin($params['name'], $params['type'] ?? 'connector'),
-                'generate_test'   => $this->skillExecutor->generateTest($params['package'], $params['class']),
+                'generate_test' => $this->skillExecutor->generateTest($params['package'], $params['class']),
             };
 
             return Response::json([
                 'success' => true,
-                'result'  => $result,
+                'result' => $result,
             ]);
         } catch (\Throwable $e) {
             return Response::error($e->getMessage());

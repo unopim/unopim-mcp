@@ -37,16 +37,16 @@ class JobExecutionTool extends BaseMcpTool
         }
 
         return Response::json([
-            'id'                   => $execution->id,
-            'job_instances_id'     => $execution->job_instances_id,
-            'state'                => $execution->state,
+            'id' => $execution->id,
+            'job_instances_id' => $execution->job_instances_id,
+            'state' => $execution->state,
             'processed_rows_count' => $execution->processed_rows_count,
-            'invalid_rows_count'   => $execution->invalid_rows_count,
-            'errors_count'         => $execution->errors_count,
-            'summary'              => $execution->summary,
-            'started_at'           => $execution->started_at?->toIso8601String(),
-            'completed_at'         => $execution->completed_at?->toIso8601String(),
-            'errors'               => $execution->errors,
+            'invalid_rows_count' => $execution->invalid_rows_count,
+            'errors_count' => $execution->errors_count,
+            'summary' => $execution->summary,
+            'started_at' => $execution->started_at?->toIso8601String(),
+            'completed_at' => $execution->completed_at?->toIso8601String(),
+            'errors' => $execution->errors,
         ]);
     }
 

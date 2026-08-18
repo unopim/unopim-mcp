@@ -18,8 +18,8 @@ it('creates and updates a product via upsert', function () {
     UnoPimAgentServer::tool(ProductUpsertTool::class, [
         'products' => [
             [
-                'sku'                 => $sku,
-                'type'                => 'simple',
+                'sku' => $sku,
+                'type' => 'simple',
                 'attribute_family_id' => $family->id,
             ],
         ],
@@ -32,7 +32,7 @@ it('creates and updates a product via upsert', function () {
     UnoPimAgentServer::tool(ProductUpsertTool::class, [
         'products' => [
             [
-                'sku'    => $sku,
+                'sku' => $sku,
                 'values' => ['common' => ['name' => 'Updated Name']],
             ],
         ],
@@ -54,7 +54,7 @@ it('creates and updates a category via upsert', function () {
     UnoPimAgentServer::tool(CategoryUpsertTool::class, [
         'categories' => [
             [
-                'code'            => $code,
+                'code' => $code,
                 'additional_data' => ['common' => ['name' => 'Test Category']],
             ],
         ],
@@ -67,7 +67,7 @@ it('creates and updates a category via upsert', function () {
     UnoPimAgentServer::tool(CategoryUpsertTool::class, [
         'categories' => [
             [
-                'code'            => $code,
+                'code' => $code,
                 'additional_data' => ['common' => ['name' => 'Updated Category']],
             ],
         ],

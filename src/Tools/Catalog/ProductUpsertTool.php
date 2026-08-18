@@ -28,11 +28,11 @@ class ProductUpsertTool extends BaseMcpTool
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
-            'products'                       => ['required', 'array', 'min:1', 'max:50'],
-            'products.*.sku'                 => ['required', 'string', 'max:100'],
-            'products.*.type'                => ['nullable', 'string', 'in:simple,configurable,virtual,downloadable,bundle,grouped'],
+            'products' => ['required', 'array', 'min:1', 'max:50'],
+            'products.*.sku' => ['required', 'string', 'max:100'],
+            'products.*.type' => ['nullable', 'string', 'in:simple,configurable,virtual,downloadable,bundle,grouped'],
             'products.*.attribute_family_id' => ['nullable', 'integer'],
-            'products.*.values'              => ['nullable', 'array'],
+            'products.*.values' => ['nullable', 'array'],
         ]);
 
         DB::beginTransaction();
@@ -62,9 +62,9 @@ class ProductUpsertTool extends BaseMcpTool
                     }
 
                     $product = $this->productRepository->create([
-                        'type'                => $productData['type'],
+                        'type' => $productData['type'],
                         'attribute_family_id' => $productData['attribute_family_id'],
-                        'sku'                 => $productData['sku'],
+                        'sku' => $productData['sku'],
                     ]);
 
                     if (! empty($productData['values'])) {
@@ -97,10 +97,10 @@ class ProductUpsertTool extends BaseMcpTool
                 ->description('Array of products to create or update (max 50).')
                 ->items(
                     $schema->object([
-                        'sku'                 => $schema->string()->description('The product SKU. Used as unique identifier.')->required(),
-                        'type'                => $schema->string()->description('Product type (required for creation).'),
+                        'sku' => $schema->string()->description('The product SKU. Used as unique identifier.')->required(),
+                        'type' => $schema->string()->description('Product type (required for creation).'),
                         'attribute_family_id' => $schema->integer()->description('The attribute family ID (required for creation).'),
-                        'values'              => $schema->object()->description('Map of attribute values.'),
+                        'values' => $schema->object()->description('Map of attribute values.'),
                     ])
                 ),
         ];

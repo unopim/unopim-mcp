@@ -28,7 +28,7 @@ class RunSkillTool extends BaseMcpTool
     {
         $validated = $request->validate([
             'skill_name' => ['required', 'string'],
-            'input'      => ['nullable', 'array'],
+            'input' => ['nullable', 'array'],
         ]);
 
         $result = $this->skillExecutor->executeSkill(
@@ -38,7 +38,7 @@ class RunSkillTool extends BaseMcpTool
 
         return Response::json([
             'success' => true,
-            'result'  => $result,
+            'result' => $result,
         ]);
     }
 
@@ -50,7 +50,7 @@ class RunSkillTool extends BaseMcpTool
         return [
             'skill_name' => $schema->string()
                 ->description('The name of the skill to execute (e.g., bulk_product_import).')->required(),
-            'input'      => $schema->object()
+            'input' => $schema->object()
                 ->description('Input parameters for the skill.'),
         ];
     }

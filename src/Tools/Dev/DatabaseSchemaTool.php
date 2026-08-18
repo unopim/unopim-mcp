@@ -3,7 +3,6 @@
 namespace Webkul\MCP\Tools\Dev;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -37,8 +36,8 @@ class DatabaseSchemaTool extends BaseMcpTool
             $columns = Schema::getColumns($table);
 
             return Response::json([
-                'table'   => $table,
-                'schema'  => $columns,
+                'table' => $table,
+                'schema' => $columns,
             ]);
         }
 

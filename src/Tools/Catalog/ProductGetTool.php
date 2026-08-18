@@ -49,21 +49,21 @@ class ProductGetTool extends BaseMcpTool
         ]);
 
         return Response::json([
-            'id'                  => $product->id,
-            'sku'                 => $product->sku,
-            'type'                => $product->type,
-            'status'              => (bool) $product->status,
-            'attribute_family'    => [
-                'id'   => $product->attribute_family?->id,
+            'id' => $product->id,
+            'sku' => $product->sku,
+            'type' => $product->type,
+            'status' => (bool) $product->status,
+            'attribute_family' => [
+                'id' => $product->attribute_family?->id,
                 'name' => $product->attribute_family?->name,
                 'code' => $product->attribute_family?->code,
             ],
-            'values'              => $product->values,
-            'completeness'        => $product->getCompletenessScore(),
-            'parent_id'           => $product->parent_id,
-            'variants'            => $product->variants->map(fn ($v) => ['id' => $v->id, 'sku' => $v->sku])->values()->all(),
-            'created_at'          => $product->created_at?->toDateTimeString(),
-            'updated_at'          => $product->updated_at?->toDateTimeString(),
+            'values' => $product->values,
+            'completeness' => $product->getCompletenessScore(),
+            'parent_id' => $product->parent_id,
+            'variants' => $product->variants->map(fn ($v) => ['id' => $v->id, 'sku' => $v->sku])->values()->all(),
+            'created_at' => $product->created_at?->toDateTimeString(),
+            'updated_at' => $product->updated_at?->toDateTimeString(),
         ]);
     }
 

@@ -29,10 +29,10 @@ it('creates and updates a locale via upsert', function () {
 
     // Create via upsert
     UnoPimAgentServer::tool(SettingUpsertTool::class, [
-        'type'  => 'locales',
+        'type' => 'locales',
         'items' => [
             [
-                'code'   => $code,
+                'code' => $code,
                 'status' => true,
             ],
         ],
@@ -43,10 +43,10 @@ it('creates and updates a locale via upsert', function () {
 
     // Update via upsert
     UnoPimAgentServer::tool(SettingUpsertTool::class, [
-        'type'  => 'locales',
+        'type' => 'locales',
         'items' => [
             [
-                'code'   => $code,
+                'code' => $code,
                 'status' => false,
             ],
         ],
@@ -60,7 +60,7 @@ it('creates and updates a locale via upsert', function () {
 
 it('rejects upsert with invalid settings type', function () {
     UnoPimAgentServer::tool(SettingUpsertTool::class, [
-        'type'  => 'invalid',
+        'type' => 'invalid',
         'items' => [['code' => 'test']],
     ])->assertHasErrors();
 });

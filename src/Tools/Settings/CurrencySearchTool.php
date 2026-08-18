@@ -6,8 +6,8 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Webkul\Core\Repositories\CurrencyRepository;
-use Webkul\MCP\Tools\BaseMcpTool;
 use Webkul\MCP\Services\UnoPimQueryBuilder;
+use Webkul\MCP\Tools\BaseMcpTool;
 
 class CurrencySearchTool extends BaseMcpTool
 {
@@ -30,8 +30,8 @@ class CurrencySearchTool extends BaseMcpTool
     {
         $validated = $request->validate([
             'filters' => ['nullable', 'array'],
-            'limit'   => ['nullable', 'integer', 'min:1', 'max:100'],
-            'cursor'  => ['nullable', 'string'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'cursor' => ['nullable', 'string'],
         ]);
 
         $query = $this->currencyRepository->getModel()->query();
@@ -47,13 +47,13 @@ class CurrencySearchTool extends BaseMcpTool
         );
 
         return Response::json([
-            'count'       => $paginator->count(),
+            'count' => $paginator->count(),
             'next_cursor' => $paginator->nextCursor()?->encode(),
-            'has_more'    => $paginator->hasMorePages(),
-            'currencies'  => $paginator->map(fn ($c) => [
-                'id'     => $c->id,
-                'code'   => $c->code,
-                'name'   => $c->name,
+            'has_more' => $paginator->hasMorePages(),
+            'currencies' => $paginator->map(fn ($c) => [
+                'id' => $c->id,
+                'code' => $c->code,
+                'name' => $c->name,
                 'status' => (bool) $c->status,
             ])->values()->all(),
         ]);
@@ -69,9 +69,9 @@ class CurrencySearchTool extends BaseMcpTool
                 ->description('List of filters: [{field, operator, value}].')
                 ->items(
                     $schema->object([
-                        'field'    => $schema->string()->description('The field to filter by (e.g., code, name).'),
+                        'field' => $schema->string()->description('The field to filter by (e.g., code, name).'),
                         'operator' => $schema->string()->description('The comparison operator.'),
-                        'value'    => $schema->string()->description('The value to compare against.'),
+                        'value' => $schema->string()->description('The value to compare against.'),
                     ])
                 ),
             'limit' => $schema->integer()

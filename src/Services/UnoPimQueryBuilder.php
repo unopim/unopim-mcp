@@ -12,15 +12,15 @@ class UnoPimQueryBuilder
      * Map of operators to their Eloquent equivalents or handlers.
      */
     protected array $operatorMap = [
-        '='           => 'where',
-        '!='          => 'where',
-        'IN'          => 'whereIn',
-        'NOT IN'      => 'whereNotIn',
-        'CONTAINS'    => 'like',
+        '=' => 'where',
+        '!=' => 'where',
+        'IN' => 'whereIn',
+        'NOT IN' => 'whereNotIn',
+        'CONTAINS' => 'like',
         'STARTS WITH' => 'like_start',
-        'ENDS WITH'   => 'like_end',
-        '>'           => 'where',
-        '<'           => 'where',
+        'ENDS WITH' => 'like_end',
+        '>' => 'where',
+        '<' => 'where',
     ];
 
     /**

@@ -45,12 +45,12 @@ class DatabaseQueryTool extends BaseMcpTool
             $results = DB::select($query);
 
             return Response::json([
-                'count'   => count($results),
+                'count' => count($results),
                 'results' => array_slice($results, 0, 100), // Limit results for JSON safety
                 'clipped' => count($results) > 100,
             ]);
         } catch (\Throwable $e) {
-            return Response::error("SQL Error: " . $e->getMessage());
+            return Response::error('SQL Error: '.$e->getMessage());
         }
     }
 

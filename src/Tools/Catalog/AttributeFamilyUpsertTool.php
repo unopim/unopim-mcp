@@ -59,6 +59,7 @@ class AttributeFamilyUpsertTool extends BaseMcpTool
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return Response::error($e->getMessage());
         }
     }

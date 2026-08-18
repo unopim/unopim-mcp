@@ -31,10 +31,10 @@ class SettingSearchTool extends BaseMcpTool
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
-            'type'    => ['required', 'string', 'in:channels,locales'],
+            'type' => ['required', 'string', 'in:channels,locales'],
             'filters' => ['nullable', 'array'],
-            'limit'   => ['nullable', 'integer', 'min:1', 'max:100'],
-            'cursor'  => ['nullable', 'string'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'cursor' => ['nullable', 'string'],
         ]);
 
         $type = $validated['type'];
@@ -53,11 +53,11 @@ class SettingSearchTool extends BaseMcpTool
         );
 
         return Response::json([
-            'type'        => $type,
-            'count'       => $paginator->count(),
+            'type' => $type,
+            'count' => $paginator->count(),
             'next_cursor' => $paginator->nextCursor()?->encode(),
-            'has_more'    => $paginator->hasMorePages(),
-            'results'     => $paginator->map(fn ($item) => $item->toArray())->values()->all(),
+            'has_more' => $paginator->hasMorePages(),
+            'results' => $paginator->map(fn ($item) => $item->toArray())->values()->all(),
         ]);
     }
 
@@ -75,9 +75,9 @@ class SettingSearchTool extends BaseMcpTool
                 ->description('List of filters: [{field, operator, value}].')
                 ->items(
                     $schema->object([
-                        'field'    => $schema->string()->description('The field to filter by (e.g., code, status).'),
+                        'field' => $schema->string()->description('The field to filter by (e.g., code, status).'),
                         'operator' => $schema->string()->description('The comparison operator.'),
-                        'value'    => $schema->string()->description('The value to compare against.'),
+                        'value' => $schema->string()->description('The value to compare against.'),
                     ])
                 ),
             'limit' => $schema->integer()

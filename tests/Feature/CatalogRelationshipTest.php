@@ -15,13 +15,13 @@ it('creates related products and retrieves relationships', function () {
     UnoPimAgentServer::tool(ProductUpsertTool::class, [
         'products' => [
             [
-                'sku'                 => $sku1,
-                'type'                => 'simple',
+                'sku' => $sku1,
+                'type' => 'simple',
                 'attribute_family_id' => $family->id,
             ],
             [
-                'sku'                 => $sku2,
-                'type'                => 'simple',
+                'sku' => $sku2,
+                'type' => 'simple',
                 'attribute_family_id' => $family->id,
             ],
         ],

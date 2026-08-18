@@ -30,22 +30,22 @@ class CatalogSchemaTool extends BaseMcpTool
 
         return Response::json([
             'filterable_fields' => [
-                'products'   => $filterableAttributes->map(fn ($a) => [
+                'products' => $filterableAttributes->map(fn ($a) => [
                     'field' => $a->code,
-                    'type'  => $a->type,
+                    'type' => $a->type,
                     'label' => $a->name ?? $a->code,
                 ])->values()->all(),
                 'categories' => ['id', 'code', 'parent_id'],
                 'attributes' => ['id', 'code', 'type', 'is_required', 'is_unique', 'is_filterable'],
-                'channels'   => ['id', 'code'],
-                'locales'    => ['id', 'code', 'status'],
+                'channels' => ['id', 'code'],
+                'locales' => ['id', 'code', 'status'],
             ],
             'operators' => [
                 '=', '!=', 'IN', 'NOT IN', 'CONTAINS', 'STARTS WITH', 'ENDS WITH', '>', '<',
             ],
             'pagination' => [
                 'limit_max' => 100,
-                'type'      => 'cursor',
+                'type' => 'cursor',
             ],
         ]);
     }

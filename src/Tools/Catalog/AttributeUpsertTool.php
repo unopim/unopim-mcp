@@ -28,15 +28,15 @@ class AttributeUpsertTool extends BaseMcpTool
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
-            'attributes'                     => ['required', 'array', 'min:1', 'max:50'],
-            'attributes.*.code'              => ['required', 'string', 'max:100'],
-            'attributes.*.type'              => ['nullable', 'string'],
-            'attributes.*.name'              => ['nullable', 'string'],
-            'attributes.*.is_required'       => ['nullable', 'boolean'],
-            'attributes.*.is_unique'         => ['nullable', 'boolean'],
-            'attributes.*.value_per_locale'  => ['nullable', 'boolean'],
+            'attributes' => ['required', 'array', 'min:1', 'max:50'],
+            'attributes.*.code' => ['required', 'string', 'max:100'],
+            'attributes.*.type' => ['nullable', 'string'],
+            'attributes.*.name' => ['nullable', 'string'],
+            'attributes.*.is_required' => ['nullable', 'boolean'],
+            'attributes.*.is_unique' => ['nullable', 'boolean'],
+            'attributes.*.value_per_locale' => ['nullable', 'boolean'],
             'attributes.*.value_per_channel' => ['nullable', 'boolean'],
-            'attributes.*.options'           => ['nullable', 'array'],
+            'attributes.*.options' => ['nullable', 'array'],
         ]);
 
         DB::beginTransaction();
@@ -82,17 +82,17 @@ class AttributeUpsertTool extends BaseMcpTool
                 ->description('Array of attributes to create or update (max 50).')
                 ->items(
                     $schema->object([
-                        'code'              => $schema->string()->description('The attribute code. Used as unique identifier.')->required(),
-                        'type'              => $schema->string()->description('Attribute type (text, textarea, select, multiselect, boolean, price, date, datetime, image, file, checkbox. Required for creation).'),
-                        'name'              => $schema->string()->description('The attribute display name (translatable, required for creation).'),
-                        'is_required'       => $schema->boolean()->description('Is attribute required.'),
-                        'is_unique'         => $schema->boolean()->description('Is attribute unique (only for text type).'),
-                        'value_per_locale'  => $schema->boolean()->description('Does value vary per locale.'),
+                        'code' => $schema->string()->description('The attribute code. Used as unique identifier.')->required(),
+                        'type' => $schema->string()->description('Attribute type (text, textarea, select, multiselect, boolean, price, date, datetime, image, file, checkbox. Required for creation).'),
+                        'name' => $schema->string()->description('The attribute display name (translatable, required for creation).'),
+                        'is_required' => $schema->boolean()->description('Is attribute required.'),
+                        'is_unique' => $schema->boolean()->description('Is attribute unique (only for text type).'),
+                        'value_per_locale' => $schema->boolean()->description('Does value vary per locale.'),
                         'value_per_channel' => $schema->boolean()->description('Does value vary per channel.'),
-                        'options'           => $schema->array()->description('Options for select/multiselect/checkbox attributes.')
+                        'options' => $schema->array()->description('Options for select/multiselect/checkbox attributes.')
                             ->items($schema->object([
-                                'code'       => $schema->string()->description('Option code.'),
-                                'label'      => $schema->string()->description('Option display label (translatable).'),
+                                'code' => $schema->string()->description('Option code.'),
+                                'label' => $schema->string()->description('Option display label (translatable).'),
                                 'sort_order' => $schema->integer()->description('Sort order.'),
                             ])),
                     ])

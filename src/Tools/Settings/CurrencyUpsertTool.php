@@ -29,8 +29,8 @@ class CurrencyUpsertTool extends BaseMcpTool
     {
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1', 'max:50'],
-            'items.*.code'   => ['required', 'string', 'size:3'],
-            'items.*.name'   => ['nullable', 'string', 'max:255'],
+            'items.*.code' => ['required', 'string', 'size:3'],
+            'items.*.name' => ['nullable', 'string', 'max:255'],
             'items.*.symbol' => ['nullable', 'string', 'max:10'],
             'items.*.status' => ['nullable', 'boolean'],
         ]);
@@ -60,6 +60,7 @@ class CurrencyUpsertTool extends BaseMcpTool
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return Response::error($e->getMessage());
         }
     }
@@ -74,8 +75,8 @@ class CurrencyUpsertTool extends BaseMcpTool
                 ->description('Array of currencies to create or update (max 50).')
                 ->items(
                     $schema->object([
-                        'code'   => $schema->string()->description('The 3-letter currency code (e.g., USD, EUR).')->required(),
-                        'name'   => $schema->string()->description('The name of the currency.'),
+                        'code' => $schema->string()->description('The 3-letter currency code (e.g., USD, EUR).')->required(),
+                        'name' => $schema->string()->description('The name of the currency.'),
                         'symbol' => $schema->string()->description('The currency symbol.'),
                         'status' => $schema->boolean()->description('Status of the currency.'),
                     ])

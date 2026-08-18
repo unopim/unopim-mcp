@@ -8,9 +8,9 @@ use Webkul\MCP\Tools\Dev\DynamicSkillTool;
 
 it('creates a dynamic skill tool with correct name', function () {
     $skillData = [
-        'name'        => 'test-skill',
+        'name' => 'test-skill',
         'description' => 'A test skill for automation.',
-        'content'     => "# Test Skill Content\n\nThese are instructions.",
+        'content' => "# Test Skill Content\n\nThese are instructions.",
     ];
 
     $tool = new DynamicSkillTool($skillData);

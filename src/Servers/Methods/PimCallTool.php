@@ -92,21 +92,21 @@ class PimCallTool extends BaseCallTool
         $permissionMap = [
             // Catalog tools
             'get_catalog_schema' => 'catalog',
-            'search_products'    => 'catalog.products',
-            'get_product'        => 'catalog.products',
-            'upsert_products'    => 'catalog.products.create',
-            'search_categories'  => 'catalog.categories',
-            'upsert_categories'  => 'catalog.categories.create',
-            'search_attributes'  => 'catalog.attributes',
-            'upsert_attributes'  => 'catalog.attributes.create',
+            'search_products' => 'catalog.products',
+            'get_product' => 'catalog.products',
+            'upsert_products' => 'catalog.products.create',
+            'search_categories' => 'catalog.categories',
+            'upsert_categories' => 'catalog.categories.create',
+            'search_attributes' => 'catalog.attributes',
+            'upsert_attributes' => 'catalog.attributes.create',
 
             // Settings tools
-            'search_settings'    => 'settings',
-            'upsert_settings'    => 'settings',
+            'search_settings' => 'settings',
+            'upsert_settings' => 'settings',
 
             // Dev tools — restricted to settings/admin
-            'dev_tools'          => 'settings',
-            'run_skill'          => 'settings',
+            'dev_tools' => 'settings',
+            'run_skill' => 'settings',
         ];
 
         // If specific permission mapped, check it. Otherwise, assume they need generic catalog/settings access.
@@ -150,8 +150,8 @@ class PimCallTool extends BaseCallTool
         if (! in_array($toolName, $readOnlyTools)) {
             Log::info("MCP Audit Log: Executed [{$toolName}]", [
                 'user_id' => request()->user()?->id ?? 'cli',
-                'ip'      => request()->ip() ?? 'local',
-                'args'    => $arguments,
+                'ip' => request()->ip() ?? 'local',
+                'args' => $arguments,
             ]);
         }
     }

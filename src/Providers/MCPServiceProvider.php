@@ -82,13 +82,7 @@ class MCPServiceProvider extends ServiceProvider
     {
         Mcp::local('unopim-dev', UnoPimAgentServer::class);
 
-        $middlewares = ['api'];
-
-        if (config('mcp.api_auth')) {
-            $middlewares[] = 'auth:api';
-        }
-
-        Route::middleware($middlewares)->group(__DIR__.'/../Routes/mcp-routes.php');
+        Route::middleware('api')->group(__DIR__.'/../Routes/mcp-routes.php');
 
         Mcp::oauthRoutes();
 

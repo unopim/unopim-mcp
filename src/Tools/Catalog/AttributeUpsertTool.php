@@ -6,9 +6,13 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
+use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsDestructive]
+#[IsIdempotent]
 class AttributeUpsertTool extends BaseMcpTool
 {
     /**

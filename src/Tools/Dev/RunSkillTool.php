@@ -5,9 +5,13 @@ namespace Webkul\MCP\Tools\Dev;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
+use Laravel\Mcp\Server\Tools\Annotations\IsOpenWorld;
 use Webkul\MCP\Contracts\SkillExecutorInterface;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsDestructive]
+#[IsOpenWorld]
 class RunSkillTool extends BaseMcpTool
 {
     /**

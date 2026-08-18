@@ -6,8 +6,10 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsReadOnly]
 class DatabaseQueryTool extends BaseMcpTool
 {
     /**

@@ -5,8 +5,10 @@ namespace Webkul\MCP\Tools\Dev;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsReadOnly]
 class AppInfoTool extends BaseMcpTool
 {
     /**
@@ -34,7 +36,7 @@ class AppInfoTool extends BaseMcpTool
                 if (file_exists($composerJson)) {
                     $content = json_decode(file_get_contents($composerJson), true);
                     $packages[] = [
-                        'name'    => $content['name'] ?? $dir,
+                        'name' => $content['name'] ?? $dir,
                         'version' => $content['version'] ?? 'dev-main',
                     ];
                 }
@@ -42,12 +44,12 @@ class AppInfoTool extends BaseMcpTool
         }
 
         return Response::json([
-            'php_version'     => PHP_VERSION,
+            'php_version' => PHP_VERSION,
             'laravel_version' => app()->version(),
-            'environment'     => app()->environment(),
-            'debug_mode'      => config('app.debug'),
+            'environment' => app()->environment(),
+            'debug_mode' => config('app.debug'),
             'unopim_packages' => $packages,
-            'server_time'     => now()->toDateTimeString(),
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
 

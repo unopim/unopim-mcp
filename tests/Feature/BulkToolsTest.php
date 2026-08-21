@@ -13,16 +13,16 @@ it('creates products in bulk via upsert', function () {
     UnoPimAgentServer::tool(ProductUpsertTool::class, [
         'products' => [
             [
-                'sku'                 => $sku1,
-                'type'                => 'simple',
+                'sku' => $sku1,
+                'type' => 'simple',
                 'attribute_family_id' => $family->id,
-                'values'              => ['common' => ['name' => 'Bulk Product 1']],
+                'values' => ['common' => ['name' => 'Bulk Product 1']],
             ],
             [
-                'sku'                 => $sku2,
-                'type'                => 'simple',
+                'sku' => $sku2,
+                'type' => 'simple',
                 'attribute_family_id' => $family->id,
-                'values'              => ['common' => ['name' => 'Bulk Product 2']],
+                'values' => ['common' => ['name' => 'Bulk Product 2']],
             ],
         ],
     ])->assertOk()->assertSee($sku1)->assertSee($sku2);
@@ -46,11 +46,11 @@ it('updates products in bulk via upsert', function () {
     UnoPimAgentServer::tool(ProductUpsertTool::class, [
         'products' => [
             [
-                'sku'    => $sku1,
+                'sku' => $sku1,
                 'values' => ['common' => ['name' => 'Updated Bulk 1']],
             ],
             [
-                'sku'    => $sku2,
+                'sku' => $sku2,
                 'values' => ['common' => ['name' => 'Updated Bulk 2']],
             ],
         ],
@@ -64,8 +64,8 @@ it('rejects batch exceeding 50 items', function () {
     $products = [];
     for ($i = 0; $i < 51; $i++) {
         $products[] = [
-            'sku'                 => 'OVER-'.$i.'-'.uniqid(),
-            'type'                => 'simple',
+            'sku' => 'OVER-'.$i.'-'.uniqid(),
+            'type' => 'simple',
             'attribute_family_id' => 1,
         ];
     }

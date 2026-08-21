@@ -5,10 +5,12 @@ namespace Webkul\MCP\Tools\DataTransfer;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\DataTransfer\Repositories\JobInstancesRepository;
-use Webkul\MCP\Tools\BaseMcpTool;
 use Webkul\MCP\Services\UnoPimQueryBuilder;
+use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsReadOnly]
 class JobSearchTool extends BaseMcpTool
 {
     /**
@@ -30,8 +32,8 @@ class JobSearchTool extends BaseMcpTool
     {
         $validated = $request->validate([
             'filters' => ['nullable', 'array'],
-            'limit'   => ['nullable', 'integer', 'min:1', 'max:100'],
-            'cursor'  => ['nullable', 'string'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'cursor' => ['nullable', 'string'],
         ]);
 
         $query = $this->jobInstancesRepository->getModel()->query();
@@ -47,15 +49,15 @@ class JobSearchTool extends BaseMcpTool
         );
 
         return Response::json([
-            'count'       => $paginator->count(),
+            'count' => $paginator->count(),
             'next_cursor' => $paginator->nextCursor()?->encode(),
-            'has_more'    => $paginator->hasMorePages(),
-            'jobs'        => $paginator->map(fn ($j) => [
-                'id'          => $j->id,
-                'code'        => $j->code,
-                'type'        => $j->type,
+            'has_more' => $paginator->hasMorePages(),
+            'jobs' => $paginator->map(fn ($j) => [
+                'id' => $j->id,
+                'code' => $j->code,
+                'type' => $j->type,
                 'entity_type' => $j->entity_type,
-                'action'      => $j->action,
+                'action' => $j->action,
             ])->values()->all(),
         ]);
     }
@@ -70,9 +72,9 @@ class JobSearchTool extends BaseMcpTool
                 ->description('List of filters: [{field, operator, value}].')
                 ->items(
                     $schema->object([
-                        'field'    => $schema->string()->description('The field to filter by (e.g., code, type, entity_type).'),
+                        'field' => $schema->string()->description('The field to filter by (e.g., code, type, entity_type).'),
                         'operator' => $schema->string()->description('The comparison operator.'),
-                        'value'    => $schema->string()->description('The value to compare against.'),
+                        'value' => $schema->string()->description('The value to compare against.'),
                     ])
                 ),
             'limit' => $schema->integer()

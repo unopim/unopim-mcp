@@ -45,8 +45,8 @@ class SetupCommand extends Command
         $this->info('Publishing UnoPim MCP configuration...');
         $this->call('vendor:publish', [
             '--provider' => 'Webkul\MCP\Providers\MCPServiceProvider',
-            '--tag'      => 'mcp-config',
-            '--force'    => true,
+            '--tag' => 'mcp-config',
+            '--force' => true,
         ]);
 
         $this->line('Clearing caches...');

@@ -18,8 +18,8 @@ it('creates and updates currencies via upsert', function () {
     UnoPimAgentServer::tool(CurrencyUpsertTool::class, [
         'items' => [
             [
-                'code'   => $code,
-                'name'   => 'Test Currency',
+                'code' => $code,
+                'name' => 'Test Currency',
                 'status' => true,
             ],
         ],
@@ -32,8 +32,8 @@ it('creates and updates currencies via upsert', function () {
     UnoPimAgentServer::tool(CurrencyUpsertTool::class, [
         'items' => [
             [
-                'code'   => $code,
-                'name'   => 'Updated Test Currency',
+                'code' => $code,
+                'name' => 'Updated Test Currency',
                 'status' => false,
             ],
         ],

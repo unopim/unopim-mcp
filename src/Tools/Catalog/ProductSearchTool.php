@@ -5,10 +5,12 @@ namespace Webkul\MCP\Tools\Catalog;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\MCP\Services\UnoPimQueryBuilder;
 use Webkul\MCP\Tools\BaseMcpTool;
 use Webkul\Product\Repositories\ProductRepository;
 
+#[IsReadOnly]
 class ProductSearchTool extends BaseMcpTool
 {
     /**
@@ -30,8 +32,8 @@ class ProductSearchTool extends BaseMcpTool
     {
         $validated = $request->validate([
             'filters' => ['nullable', 'array'],
-            'limit'   => ['nullable', 'integer', 'min:1', 'max:100'],
-            'cursor'  => ['nullable', 'string'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'cursor' => ['nullable', 'string'],
         ]);
 
         $query = $this->productRepository->getModel()->query();
@@ -47,14 +49,14 @@ class ProductSearchTool extends BaseMcpTool
         );
 
         return Response::json([
-            'count'       => $paginator->count(),
+            'count' => $paginator->count(),
             'next_cursor' => $paginator->nextCursor()?->encode(),
-            'has_more'    => $paginator->hasMorePages(),
-            'products'    => $paginator->map(fn ($p) => [
-                'id'                  => $p->id,
-                'sku'                 => $p->sku,
-                'type'                => $p->type,
-                'status'              => $p->status,
+            'has_more' => $paginator->hasMorePages(),
+            'products' => $paginator->map(fn ($p) => [
+                'id' => $p->id,
+                'sku' => $p->sku,
+                'type' => $p->type,
+                'status' => $p->status,
                 'attribute_family_id' => $p->attribute_family_id,
             ])->values()->all(),
         ]);
@@ -70,9 +72,9 @@ class ProductSearchTool extends BaseMcpTool
                 ->description('List of filters: [{field, operator, value}]. Supported operators: =, !=, IN, NOT IN, CONTAINS, STARTS WITH, ENDS WITH, >, <.')
                 ->items(
                     $schema->object([
-                        'field'    => $schema->string()->description('The field to filter by (e.g., sku, status).'),
+                        'field' => $schema->string()->description('The field to filter by (e.g., sku, status).'),
                         'operator' => $schema->string()->description('The comparison operator.'),
-                        'value'    => $schema->string()->description('The value to compare against.'),
+                        'value' => $schema->string()->description('The value to compare against.'),
                     ])
                 ),
             'limit' => $schema->integer()

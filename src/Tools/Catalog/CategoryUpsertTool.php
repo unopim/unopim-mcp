@@ -6,9 +6,13 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
+use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Webkul\Category\Repositories\CategoryRepository;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsDestructive]
+#[IsIdempotent]
 class CategoryUpsertTool extends BaseMcpTool
 {
     /**
@@ -28,10 +32,10 @@ class CategoryUpsertTool extends BaseMcpTool
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
-            'categories'                   => ['required', 'array', 'min:1', 'max:50'],
-            'categories.*.code'            => ['required', 'string', 'max:100'],
-            'categories.*.name'            => ['nullable', 'string', 'max:100'],
-            'categories.*.parent_id'       => ['nullable', 'integer'],
+            'categories' => ['required', 'array', 'min:1', 'max:50'],
+            'categories.*.code' => ['required', 'string', 'max:100'],
+            'categories.*.name' => ['nullable', 'string', 'max:100'],
+            'categories.*.parent_id' => ['nullable', 'integer'],
             'categories.*.additional_data' => ['nullable', 'array'],
         ]);
 
@@ -74,10 +78,10 @@ class CategoryUpsertTool extends BaseMcpTool
                 ->description('Array of categories to create or update (max 50).')
                 ->items(
                     $schema->object([
-                        'code'            => $schema->string()->description('The category code. Used as unique identifier.')->required(),
-                        'name'            => $schema->string()->description('The category name (required for creation).'),
-                        'parent_id'       => $schema->integer()->description('The parent category ID.'),
-                        'status'          => $schema->boolean()->description('Status (active/inactive).'),
+                        'code' => $schema->string()->description('The category code. Used as unique identifier.')->required(),
+                        'name' => $schema->string()->description('The category name (required for creation).'),
+                        'parent_id' => $schema->integer()->description('The parent category ID.'),
+                        'status' => $schema->boolean()->description('Status (active/inactive).'),
                         'additional_data' => $schema->object()->description('Additional category field values.'),
                     ])
                 ),

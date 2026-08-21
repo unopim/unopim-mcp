@@ -73,7 +73,7 @@ return [
     */
     'media' => [
         'allowed_extensions' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'csv', 'xlsx'],
-        'allowed_mimes'      => [
+        'allowed_mimes' => [
             'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
             'application/pdf', 'text/csv', 'text/plain', 'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

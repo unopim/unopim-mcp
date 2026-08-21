@@ -37,8 +37,8 @@ it('caches loaded skills if cache is enabled', function () {
     Config::set('mcp.enable_cache', true);
     Cache::shouldReceive('remember')->once()->andReturn([
         'cached_skill' => [
-            'name'        => 'Cached',
-            'tool_key'    => 'cached_skill',
+            'name' => 'Cached',
+            'tool_key' => 'cached_skill',
             'description' => 'A cached skill',
         ],
     ]);

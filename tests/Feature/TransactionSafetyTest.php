@@ -13,7 +13,6 @@ use Webkul\Product\Models\Product;
  * transaction (no rollback, no commit). These tests prove that a mid-batch
  * validation failure both returns an error AND closes the transaction.
  */
-
 it('rolls back the transaction when product upsert returns early on missing type', function () {
     $family = AttributeFamily::first() ?? AttributeFamily::factory()->create();
     $existingSku = 'TX-OK-'.uniqid();
@@ -24,13 +23,13 @@ it('rolls back the transaction when product upsert returns early on missing type
     UnoPimAgentServer::tool(ProductUpsertTool::class, [
         'products' => [
             [
-                'sku'                 => $existingSku,
-                'type'                => 'simple',
+                'sku' => $existingSku,
+                'type' => 'simple',
                 'attribute_family_id' => $family->id,
             ],
             [
                 // new SKU -> goes to create branch -> missing type -> early return
-                'sku'    => $missingSku,
+                'sku' => $missingSku,
                 'values' => ['common' => ['name' => 'Should not persist']],
             ],
         ],
@@ -84,8 +83,8 @@ it('rolls back when an unexpected exception bubbles from repository', function (
     UnoPimAgentServer::tool(ProductUpsertTool::class, [
         'products' => [
             [
-                'sku'                 => $sku,
-                'type'                => 'simple',
+                'sku' => $sku,
+                'type' => 'simple',
                 'attribute_family_id' => $family->id,
             ],
         ],

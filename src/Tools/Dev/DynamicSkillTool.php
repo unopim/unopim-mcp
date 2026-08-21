@@ -5,8 +5,10 @@ namespace Webkul\MCP\Tools\Dev;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsReadOnly]
 class DynamicSkillTool extends BaseMcpTool
 {
     public function __construct(

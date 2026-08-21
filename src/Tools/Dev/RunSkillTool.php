@@ -5,9 +5,13 @@ namespace Webkul\MCP\Tools\Dev;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
+use Laravel\Mcp\Server\Tools\Annotations\IsOpenWorld;
 use Webkul\MCP\Contracts\SkillExecutorInterface;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsDestructive]
+#[IsOpenWorld]
 class RunSkillTool extends BaseMcpTool
 {
     /**
@@ -28,7 +32,7 @@ class RunSkillTool extends BaseMcpTool
     {
         $validated = $request->validate([
             'skill_name' => ['required', 'string'],
-            'input'      => ['nullable', 'array'],
+            'input' => ['nullable', 'array'],
         ]);
 
         $result = $this->skillExecutor->executeSkill(
@@ -38,7 +42,7 @@ class RunSkillTool extends BaseMcpTool
 
         return Response::json([
             'success' => true,
-            'result'  => $result,
+            'result' => $result,
         ]);
     }
 
@@ -50,7 +54,7 @@ class RunSkillTool extends BaseMcpTool
         return [
             'skill_name' => $schema->string()
                 ->description('The name of the skill to execute (e.g., bulk_product_import).')->required(),
-            'input'      => $schema->object()
+            'input' => $schema->object()
                 ->description('Input parameters for the skill.'),
         ];
     }

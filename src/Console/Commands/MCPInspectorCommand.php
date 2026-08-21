@@ -69,9 +69,9 @@ class MCPInspectorCommand extends Command
         $process->setTimeout(null);
 
         $env = [
-            'HOST'                         => $host,
-            'PORT'                         => $port,
-            'ALLOWED_ORIGINS'              => "http://localhost:6274,http://127.0.0.1:6274,http://{$host}:6274",
+            'HOST' => $host,
+            'PORT' => $port,
+            'ALLOWED_ORIGINS' => "http://localhost:6274,http://127.0.0.1:6274,http://{$host}:6274",
             'NODE_TLS_REJECT_UNAUTHORIZED' => '0',
         ];
 

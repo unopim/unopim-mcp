@@ -25,8 +25,8 @@ abstract class BaseMcpTool extends Tool
         } catch (Throwable $e) {
             $errorRef = Str::random(8);
             Log::error("MCP Tool Error [{$errorRef}]: ".$e->getMessage(), [
-                'tool'  => static::class,
-                'args'  => $request->all(),
+                'tool' => static::class,
+                'args' => $request->all(),
                 'trace' => $e->getTraceAsString(),
             ]);
 

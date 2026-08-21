@@ -5,10 +5,12 @@ namespace Webkul\MCP\Tools\Catalog;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\Attribute\Repositories\AttributeOptionRepository;
 use Webkul\MCP\Services\UnoPimQueryBuilder;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsReadOnly]
 class AttributeOptionSearchTool extends BaseMcpTool
 {
     /**
@@ -30,8 +32,8 @@ class AttributeOptionSearchTool extends BaseMcpTool
     {
         $validated = $request->validate([
             'filters' => ['nullable', 'array'],
-            'limit'   => ['nullable', 'integer', 'min:1', 'max:100'],
-            'cursor'  => ['nullable', 'string'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'cursor' => ['nullable', 'string'],
         ]);
 
         $query = $this->optionRepository->getModel()->query();
@@ -47,15 +49,15 @@ class AttributeOptionSearchTool extends BaseMcpTool
         );
 
         return Response::json([
-            'count'       => $paginator->count(),
+            'count' => $paginator->count(),
             'next_cursor' => $paginator->nextCursor()?->encode(),
-            'has_more'    => $paginator->hasMorePages(),
-            'options'     => $paginator->map(fn ($o) => [
-                'id'           => $o->id,
+            'has_more' => $paginator->hasMorePages(),
+            'options' => $paginator->map(fn ($o) => [
+                'id' => $o->id,
                 'attribute_id' => $o->attribute_id,
-                'code'         => $o->code,
-                'label'        => $o->label,
-                'sort_order'   => $o->sort_order,
+                'code' => $o->code,
+                'label' => $o->label,
+                'sort_order' => $o->sort_order,
                 'swatch_value' => $o->swatch_value,
             ])->values()->all(),
         ]);
@@ -71,9 +73,9 @@ class AttributeOptionSearchTool extends BaseMcpTool
                 ->description('List of filters: [{field, operator, value}]. Supported fields: attribute_id, code, label.')
                 ->items(
                     $schema->object([
-                        'field'    => $schema->string()->description('The field to filter by (e.g., attribute_id, code).'),
+                        'field' => $schema->string()->description('The field to filter by (e.g., attribute_id, code).'),
                         'operator' => $schema->string()->description('The comparison operator (=, !=, IN, CONTAINS, etc.).'),
-                        'value'    => $schema->string()->description('The value to compare against.'),
+                        'value' => $schema->string()->description('The value to compare against.'),
                     ])
                 ),
             'limit' => $schema->integer()

@@ -19,7 +19,7 @@ it('runs mcp:make plugin command', function () {
 
     Artisan::call('mcp:make', [
         'action' => 'plugin',
-        'name'   => 'MyConnector',
+        'name' => 'MyConnector',
         '--type' => 'connector',
     ]);
 
@@ -35,7 +35,7 @@ it('runs mcp:make test command', function () {
 
     Artisan::call('mcp:make', [
         'action' => 'test',
-        'name'   => 'MyConnector',
+        'name' => 'MyConnector',
         'target' => 'Services/MyService',
     ]);
 

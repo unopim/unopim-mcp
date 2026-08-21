@@ -5,8 +5,10 @@ namespace Webkul\MCP\Tools\Dev;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsReadOnly]
 class LogReadTool extends BaseMcpTool
 {
     /**
@@ -28,7 +30,7 @@ class LogReadTool extends BaseMcpTool
     {
         $validated = $request->validate([
             'lines' => ['nullable', 'integer', 'min:1', "max:{$this->maxLines}"],
-            'type'  => ['nullable', 'string', 'in:laravel,mcp'],
+            'type' => ['nullable', 'string', 'in:laravel,mcp'],
         ]);
 
         $lines = (int) ($validated['lines'] ?? 50);
@@ -46,8 +48,8 @@ class LogReadTool extends BaseMcpTool
         $content = $this->tail($logPath, $lines);
 
         return Response::json([
-            'file'    => basename($logPath),
-            'lines'   => $lines,
+            'file' => basename($logPath),
+            'lines' => $lines,
             'content' => $content,
         ]);
     }

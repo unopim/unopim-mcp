@@ -23,7 +23,7 @@ it('creates and updates families via upsert', function () {
             ],
         ],
     ]);
-    
+
     $response->assertOk()->assertSee($code)->assertSee('created');
 
     $family = AttributeFamily::where('code', $code)->first();

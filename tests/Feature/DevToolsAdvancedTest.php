@@ -21,7 +21,7 @@ it('generates a test via dev_tools', function () {
         'action' => 'generate_test',
         'params' => [
             'package' => 'Webkul/MyPlugin',
-            'class'   => 'Services/MyService',
+            'class' => 'Services/MyService',
         ],
     ])->assertOk()->assertSee('MyServiceTest.php');
 });
@@ -36,7 +36,7 @@ it('executes a skill via run_skill tool', function () {
 
     UnoPimAgentServer::tool(RunSkillTool::class, [
         'skill_name' => 'bulk_import',
-        'input'      => ['file' => 'data.csv'],
+        'input' => ['file' => 'data.csv'],
     ])->assertOk()->assertSee('bulk_import');
 });
 
@@ -59,9 +59,9 @@ it('handles plugin generation for different types via dev_tools', function () {
         ->once()
         ->with('MyExtension', 'core-extension')
         ->andReturn([
-            'name'    => 'MyExtension',
+            'name' => 'MyExtension',
             'message' => 'Plugin [MyExtension] (core-extension) generated successfully.',
-            'files'   => [],
+            'files' => [],
         ]);
 
     UnoPimAgentServer::tool(DevToolsTool::class, [

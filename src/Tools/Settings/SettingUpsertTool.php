@@ -6,10 +6,14 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
+use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Webkul\Core\Repositories\ChannelRepository;
 use Webkul\Core\Repositories\LocaleRepository;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsDestructive]
+#[IsIdempotent]
 class SettingUpsertTool extends BaseMcpTool
 {
     /**
@@ -30,8 +34,8 @@ class SettingUpsertTool extends BaseMcpTool
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
-            'type'         => ['required', 'string', 'in:channels,locales'],
-            'items'        => ['required', 'array', 'min:1', 'max:50'],
+            'type' => ['required', 'string', 'in:channels,locales'],
+            'items' => ['required', 'array', 'min:1', 'max:50'],
             'items.*.code' => ['required', 'string', 'max:100'],
             // Additional fields depend on type, but repositories handle them via $attributes
         ]);
@@ -67,7 +71,7 @@ class SettingUpsertTool extends BaseMcpTool
 
         return Response::json([
             'success' => true,
-            'type'    => $type,
+            'type' => $type,
             'results' => $results,
         ]);
     }

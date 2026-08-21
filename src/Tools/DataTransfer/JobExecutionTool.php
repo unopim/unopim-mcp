@@ -5,13 +5,11 @@ namespace Webkul\MCP\Tools\DataTransfer;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
-use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
-use Laravel\Mcp\Server\Tools\Annotations\IsOpenWorld;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\DataTransfer\Repositories\JobTrackRepository;
 use Webkul\MCP\Tools\BaseMcpTool;
 
-#[IsDestructive]
-#[IsOpenWorld]
+#[IsReadOnly]
 class JobExecutionTool extends BaseMcpTool
 {
     /**

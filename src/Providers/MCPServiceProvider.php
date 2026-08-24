@@ -3,6 +3,8 @@
 namespace Webkul\MCP\Providers;
 
 use Illuminate\Support\Facades\Route;
+use Laravel\Passport\Contracts\AuthorizationViewResponse;
+use Laravel\Passport\Passport;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Mcp\Facades\Mcp;
 use Webkul\MCP\Console\Commands\DevMcpCommand;
@@ -86,6 +88,14 @@ class MCPServiceProvider extends ServiceProvider
 
         Mcp::oauthRoutes();
 
+        $this->loadViewsFrom(dirname(__DIR__, 2).'/resources/views', 'unopim-mcp');
+
+        $this->publishes([
+            dirname(__DIR__, 2).'/resources/views' => resource_path('views/vendor/unopim-mcp'),
+        ], 'mcp-views');
+
+        $this->registerAuthorizationView();
+
         $this->registerLoginRouteFallback();
 
         if ($this->app->runningInConsole()) {
@@ -99,17 +109,43 @@ class MCPServiceProvider extends ServiceProvider
     }
 
     /**
-     * Passport defaults to the "web" guard, which UnoPim does not define.
-     * Admin sessions live on the "admin" guard, so the OAuth authorize
-     * flow must check that guard to recognize logged-in admins.
+     * Passport defaults to the "web" guard. UnoPim defines that guard, but
+     * admins never authenticate on it — their sessions live on "admin". The
+     * OAuth authorize flow must therefore look at the guard that actually
+     * carries an admin session, or it treats a signed-in admin as a guest and
+     * redirects back to the login page indefinitely.
      */
     protected function configurePassportGuard(): void
     {
+        if (! config('auth.guards.admin')) {
+            return;
+        }
+
         $guard = config('passport.guard', 'web');
 
-        if (! config("auth.guards.{$guard}") && config('auth.guards.admin')) {
-            config(['passport.guard' => 'admin']);
+        // Respect an explicit choice: if the configured guard already
+        // authenticates the same provider as the admin guard, leave it alone.
+        if (config("auth.guards.{$guard}.provider") === config('auth.guards.admin.provider')) {
+            return;
         }
+
+        config(['passport.guard' => 'admin']);
+    }
+
+    /**
+     * Passport 12 shipped an authorization view; Passport 13 does not, and it
+     * has no publishable one. Without a bound AuthorizationViewResponse the
+     * consent screen throws "Target [...] is not instantiable" and every
+     * connector attempt fails with a 500. Ship one, but never override a view
+     * the host application has already chosen.
+     */
+    protected function registerAuthorizationView(): void
+    {
+        if ($this->app->bound(AuthorizationViewResponse::class)) {
+            return;
+        }
+
+        Passport::authorizationView('unopim-mcp::authorize');
     }
 
     /**

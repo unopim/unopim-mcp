@@ -24,7 +24,7 @@ class ToolRegistry
      */
     public static function tools(): array
     {
-        return [
+        return array_merge([
             // Catalog Discovery & Schema
             CatalogSchemaTool::class,
 
@@ -46,6 +46,26 @@ class ToolRegistry
             // Dev & Skill Capabilities
             RunSkillTool::class,
             DevToolsTool::class,
+        ], static::damTools());
+    }
+
+    /**
+     * DAM tools, present only when the optional unopim/dam package is
+     * installed. The MCP package does not depend on the DAM, so the class
+     * check is the extension seam: no DAM, no tools, no error.
+     *
+     * @return array<int, class-string>
+     */
+    protected static function damTools(): array
+    {
+        if (! class_exists(\Webkul\DAM\Models\Asset::class)) {
+            return [];
+        }
+
+        return [
+            \Webkul\MCP\Tools\Dam\AssetSearchTool::class,
+            \Webkul\MCP\Tools\Dam\AssetGetTool::class,
+            \Webkul\MCP\Tools\Dam\DirectoryTreeTool::class,
         ];
     }
 }

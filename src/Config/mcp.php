@@ -14,6 +14,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Tool Groups
+    |--------------------------------------------------------------------------
+    |
+    | Which groups of tools are exposed over MCP. Names map to the groups in
+    | Webkul\MCP\Registry\ToolRegistry.
+    |
+    | The developer group covers arbitrary SQL, log reading, file writes and
+    | command execution. That is reasonable on a local instance and a large
+    | surface on a host reachable from the internet, so it is opt-in.
+    |
+    */
+    'tools' => [
+        'catalog'       => env('MCP_CATALOG_TOOLS', true),
+        'settings'      => env('MCP_SETTINGS_TOOLS', true),
+        'data_transfer' => env('MCP_DATA_TRANSFER_TOOLS', true),
+        'developer'     => env('MCP_DEVELOPER_TOOLS', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Rate Limiting
     |--------------------------------------------------------------------------
     |

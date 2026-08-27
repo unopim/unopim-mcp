@@ -1,63 +1,64 @@
 <?php
 
 use Webkul\MCP\Registry\ToolRegistry;
-use Webkul\MCP\Tools\Catalog\AttributeSearchTool;
-use Webkul\MCP\Tools\Catalog\AttributeUpsertTool;
-use Webkul\MCP\Tools\Catalog\CatalogSchemaTool;
-use Webkul\MCP\Tools\Catalog\CategorySearchTool;
-use Webkul\MCP\Tools\Catalog\CategoryUpsertTool;
-use Webkul\MCP\Tools\Catalog\ProductGetTool;
+use Webkul\MCP\Tools\Catalog\AttributeFamilySearchTool;
+use Webkul\MCP\Tools\Catalog\AttributeOptionSearchTool;
 use Webkul\MCP\Tools\Catalog\ProductSearchTool;
-use Webkul\MCP\Tools\Catalog\ProductUpsertTool;
+use Webkul\MCP\Tools\DataTransfer\JobSearchTool;
+use Webkul\MCP\Tools\Dev\DatabaseQueryTool;
 use Webkul\MCP\Tools\Dev\DevToolsTool;
-use Webkul\MCP\Tools\Dev\RunSkillTool;
-use Webkul\MCP\Tools\Settings\SettingSearchTool;
-use Webkul\MCP\Tools\Settings\SettingUpsertTool;
+use Webkul\MCP\Tools\Settings\CurrencySearchTool;
 
-it('returns exactly 12 registered tools', function () {
-    $tools = ToolRegistry::tools();
+it('registers every tool class the package ships', function () {
+    $registered = collect(ToolRegistry::groups())->flatten()->all();
 
-    expect($tools)->toHaveCount(12);
+    $shipped = collect(glob(dirname(__DIR__, 2).'/src/Tools/*/*.php'))
+        ->map(fn (string $path): string => basename($path, '.php'))
+        // Skills are registered per skill file by the server, not by the registry.
+        ->reject(fn (string $class): bool => in_array($class, ['BaseMcpTool', 'DynamicSkillTool'], true))
+        ->sort()
+        ->values();
+
+    $registeredNames = collect($registered)
+        ->map(fn (string $class): string => class_basename($class))
+        ->sort()
+        ->values();
+
+    expect($registeredNames->all())->toBe($shipped->all());
 });
 
-it('contains all catalog tools', function () {
+it('exposes catalog, settings and data transfer tools by default', function () {
+    config(['mcp.tools' => null]);
+
     $tools = ToolRegistry::tools();
 
-    expect($tools)->toContain(CatalogSchemaTool::class);
-    expect($tools)->toContain(ProductSearchTool::class);
-    expect($tools)->toContain(ProductGetTool::class);
-    expect($tools)->toContain(ProductUpsertTool::class);
-    expect($tools)->toContain(CategorySearchTool::class);
-    expect($tools)->toContain(CategoryUpsertTool::class);
-    expect($tools)->toContain(AttributeSearchTool::class);
-    expect($tools)->toContain(AttributeUpsertTool::class);
+    expect($tools)->toContain(ProductSearchTool::class)
+        ->and($tools)->toContain(AttributeOptionSearchTool::class)
+        ->and($tools)->toContain(AttributeFamilySearchTool::class)
+        ->and($tools)->toContain(CurrencySearchTool::class)
+        ->and($tools)->toContain(JobSearchTool::class);
 });
 
-it('contains all settings tools', function () {
+it('keeps the developer group out unless it is switched on', function () {
+    config(['mcp.tools.developer' => false]);
+
     $tools = ToolRegistry::tools();
 
-    expect($tools)->toContain(SettingSearchTool::class);
-    expect($tools)->toContain(SettingUpsertTool::class);
+    expect($tools)->not->toContain(DevToolsTool::class)
+        ->and($tools)->not->toContain(DatabaseQueryTool::class);
 });
 
-it('contains all dev tools', function () {
+it('includes the developer group once enabled', function () {
+    config(['mcp.tools.developer' => true]);
+
     $tools = ToolRegistry::tools();
 
-    expect($tools)->toContain(DevToolsTool::class);
-    expect($tools)->toContain(RunSkillTool::class);
+    expect($tools)->toContain(DevToolsTool::class)
+        ->and($tools)->toContain(DatabaseQueryTool::class);
 });
 
-it('returns an array of class strings', function () {
-    $tools = ToolRegistry::tools();
+it('can disable a group of catalog tools entirely', function () {
+    config(['mcp.tools.catalog' => false]);
 
-    foreach ($tools as $tool) {
-        expect($tool)->toBeString();
-        expect(class_exists($tool))->toBeTrue();
-    }
-});
-
-it('contains CatalogSchemaTool as the first entry', function () {
-    $tools = ToolRegistry::tools();
-
-    expect($tools[0])->toBe(CatalogSchemaTool::class);
+    expect(ToolRegistry::tools())->not->toContain(ProductSearchTool::class);
 });

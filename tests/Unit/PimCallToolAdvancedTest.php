@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Mcp\Server\ServerContext;
-use Laravel\Mcp\Server\Transport\JsonRpcRequest;
+use Laravel\Mcp\Transport\JsonRpcRequest;
 use Webkul\MCP\Servers\Methods\PimCallTool;
 
 it('returns rate limit error response with correct structure', function () {

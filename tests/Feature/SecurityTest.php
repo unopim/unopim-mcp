@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Config;
 use Laravel\Mcp\Server\ServerContext;
-use Laravel\Mcp\Server\Transport\JsonRpcRequest;
+use Laravel\Mcp\Transport\JsonRpcRequest;
 use Webkul\MCP\DevTools\FileManager;
 use Webkul\MCP\Servers\Methods\PimCallTool;
 

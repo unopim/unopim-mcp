@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Mcp\Server\Methods\CallTool as BaseCallTool;
 use Laravel\Mcp\Server\ServerContext;
-use Laravel\Mcp\Server\Transport\JsonRpcRequest;
-use Laravel\Mcp\Server\Transport\JsonRpcResponse;
+use Laravel\Mcp\Transport\JsonRpcRequest;
+use Laravel\Mcp\Transport\JsonRpcResponse;
 
 class PimCallTool extends BaseCallTool
 {
@@ -92,13 +92,13 @@ class PimCallTool extends BaseCallTool
         $permissionMap = [
             // Catalog tools
             'get_catalog_schema' => 'catalog',
-            'search_products' => 'catalog.products',
-            'get_product' => 'catalog.products',
-            'upsert_products' => 'catalog.products.create',
-            'search_categories' => 'catalog.categories',
-            'upsert_categories' => 'catalog.categories.create',
-            'search_attributes' => 'catalog.attributes',
-            'upsert_attributes' => 'catalog.attributes.create',
+            'search_products'    => 'catalog.products',
+            'get_product'        => 'catalog.products',
+            'upsert_products'    => 'catalog.products.create',
+            'search_categories'  => 'catalog.categories',
+            'upsert_categories'  => 'catalog.categories.create',
+            'search_attributes'  => 'catalog.attributes',
+            'upsert_attributes'  => 'catalog.attributes.create',
 
             // Settings tools
             'search_settings' => 'settings',
@@ -150,8 +150,8 @@ class PimCallTool extends BaseCallTool
         if (! in_array($toolName, $readOnlyTools)) {
             Log::info("MCP Audit Log: Executed [{$toolName}]", [
                 'user_id' => request()->user()?->id ?? 'cli',
-                'ip' => request()->ip() ?? 'local',
-                'args' => $arguments,
+                'ip'      => request()->ip() ?? 'local',
+                'args'    => $arguments,
             ]);
         }
     }

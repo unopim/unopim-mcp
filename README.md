@@ -5,7 +5,7 @@ Empower AI assistants (GitHub Copilot, Claude, Cursor, Windsurf) to interact wit
 > The bridge exposes **two transports in one package**:
 > | Server | Transport | Best for |
 > |---|---|---|
-> | **HTTP Agent** | `POST /api/mcp/unopim` (SSE) | Remote AI assistants, PIM workflows |
+> | **HTTP Agent** | `POST /mcp/unopim` (SSE) | Remote AI assistants, PIM workflows |
 > | **stdio Agent** | `php artisan mcp:start unopim-dev` | Coding agents (Copilot, Cursor, Claude Code) |
 
 ---
@@ -78,7 +78,7 @@ Register the MCP server in your editor's config file. Both HTTP and stdio transp
             "cwd": "/path/to/your/unopim"
         },
         "unopim-http": {
-            "url": "http://127.0.0.1:8000/api/mcp/unopim",
+            "url": "http://127.0.0.1:8000/mcp/unopim",
             "type": "http"
         }
     }
@@ -101,9 +101,9 @@ claude mcp add unopim-dev -- php artisan mcp:start unopim-dev
 
 No manual setup is required — the package registers everything at boot:
 OAuth discovery + dynamic client registration endpoints, the Passport
-`admin` guard binding, a `login` route alias to the admin login page, and
-the guard-bridge middleware that maps the Passport token user onto
-UnoPim's ACL (`bouncer()`).
+`admin` guard binding, the OAuth consent screen (`Passport::authorizationView`),
+a `login` route alias to the admin login page, and the guard-bridge middleware
+that maps the Passport token user onto UnoPim's ACL (`bouncer()`).
 
 1. Make sure Passport keys exist: `php artisan passport:keys` (skip if already generated).
 2. In claude.ai go to **Settings > Connectors > Add custom connector**.
@@ -315,7 +315,7 @@ packages/Webkul/MCP/
 │   ├── Providers/MCPServiceProvider.php   # Service registration, route loading
 │   ├── Registry/ToolRegistry.php          # Static registry of 25 core tools
 │   ├── Resources/Catalog/                 # CatalogSchemaResource
-│   ├── Routes/mcp-routes.php             # HTTP endpoint registration (POST /api/mcp/unopim)
+│   ├── Routes/mcp-routes.php             # HTTP endpoint registration (POST /mcp/unopim)
 │   ├── Servers/
 │   │   ├── UnoPimAgentServer.php          # Main MCP server (tools, resources, prompts, skills)
 │   │   └── Methods/PimCallTool.php        # Auth, rate limiting, ACL, audit proxy

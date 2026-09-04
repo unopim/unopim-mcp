@@ -35,9 +35,12 @@ class UnoPimAgentServer extends Server
         - **Catalog Discovery**: Use `get_catalog_schema` to understand filterable fields, operators, and pagination rules.
         - **Product Management**: Use `search_products` to find products, `get_product` for details, and `upsert_products` to create/update (batch up to 50).
         - **Category Management**: Use `search_categories` to browse and `upsert_categories` to create/update categories.
-        - **Attribute Management**: Use `search_attributes` to explore attributes and `upsert_attributes` to create/update them.
-        - **Settings Management**: Use `search_settings` and `upsert_settings` to manage channels and locales.
+        - **Attribute Management**: Use `search_attributes` to explore attributes, `upsert_attributes` to create/update them, and `search_attribute_options` to list the options of a select/multiselect attribute.
+        - **Family & Group Management**: Use `search_families` / `upsert_families` for attribute families, and `search_attribute_groups` / `upsert_attribute_groups` for the groups that organise attributes within a family.
+        - **Settings Management**: Use `search_settings` and `upsert_settings` to manage channels and locales, and `search_currencies` / `upsert_currencies` to manage currencies.
+        - **Data Transfer**: Use `search_jobs` to find import/export job instances and `get_job_execution` to inspect a run's status, row counts, and errors.
         - **Developer Tools**: Use `dev_tools` for file management, command execution, and code generation. Use `run_skill` to execute predefined development skills.
+        - **Diagnostics**: Use `get_app_info` for Laravel/PHP versions and installed packages, `get_database_schema` to introspect tables and columns, `run_database_query` for read-only SQL, and `read_logs` to tail application logs.
         - **Dynamic Skills**: Custom skills loaded from `.ai/skills/` are registered as additional tools.
 
         ### Guidelines
@@ -46,6 +49,8 @@ class UnoPimAgentServer extends Server
         - All search tools use cursor-based pagination (max 100 per page).
         - Use `dev_tools` with action `generate_plugin` to scaffold new extensions.
         - Use `dev_tools` with action `run_command` for artisan/composer commands.
+        - Prefer `get_job_execution` over `read_logs` when diagnosing a failed import or export.
+        - `run_database_query` is read-only — use the upsert tools to change catalog data.
         - Access the `catalog-schema` resource for a high-level catalog summary.
     MARKDOWN;
 

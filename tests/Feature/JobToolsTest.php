@@ -1,6 +1,7 @@
 <?php
 
 use Webkul\DataTransfer\Models\JobInstances;
+use Webkul\DataTransfer\Helpers\Import;
 use Webkul\DataTransfer\Models\JobTrack;
 use Webkul\MCP\Servers\UnoPimAgentServer;
 use Webkul\MCP\Tools\DataTransfer\JobExecutionTool;
@@ -26,6 +27,7 @@ it('gets job execution details', function () {
         'job_instances_id' => $job->id,
         'type' => $job->type,
         'action' => $job->action,
+        'validation_strategy' => $job->validation_strategy ?? Import::VALIDATION_STRATEGY_SKIP_ERRORS,
         'state' => 'completed',
         'meta' => [],
         'processed_rows_count' => 10,

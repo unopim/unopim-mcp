@@ -1,0 +1,116 @@
+name: 🐛 Bug report
+description: Report a bug or unexpected behavior in UnoPim MCP.
+title: '[Bug]: '
+labels: ['bug']
+
+body:
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pre-submission checklist
+      options:
+        - label: I have searched the [existing issues](https://github.com/unopim/unopim-mcp/issues?q=) and this bug has not already been reported.
+          required: true
+        - label: I have read [Troubleshooting](https://github.com/unopim/unopim-mcp/blob/main/docs/troubleshooting.md).
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: UnoPim MCP version
+      description: Run `composer show unopim/mcp`.
+      placeholder: 'x.y.z'
+    validations:
+      required: true
+
+  - type: input
+    id: unopim_version
+    attributes:
+      label: UnoPim version
+      placeholder: 'x.y.z'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: transport
+    attributes:
+      label: Transport
+      options:
+        - HTTP (remote endpoint)
+        - stdio (php artisan mcp:start unopim-dev)
+        - Both
+    validations:
+      required: true
+
+  - type: input
+    id: client
+    attributes:
+      label: MCP client
+      description: The AI client and its version.
+      placeholder: 'Claude Desktop 1.x, Claude Code, Cursor, VS Code Copilot, MCP Inspector...'
+    validations:
+      required: true
+
+  - type: input
+    id: tool
+    attributes:
+      label: Tool(s) affected
+      placeholder: 'upsert_products, search_products...'
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue Description
+      description: Provide a more detailed introduction to the issue itself.
+    validations:
+      required: true
+
+  - type: textarea
+    id: precon
+    attributes:
+      label: Preconditions (environment)
+      description: Please provide as much detailed information about your environment as possible.
+      value: |
+        - PHP version:
+        - Database (MySQL/MariaDB/PostgreSQL + version):
+        - Elasticsearch version (or "not used"):
+        - Web server / Docker:
+        - OS:
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include the tool call arguments (redact secrets and tokens).
+      value: |
+        1. Call tool '...' with '...'
+        2. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Result
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Result
+      description: Include the tool response and any `storage/logs/laravel.log` entries.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+    validations:
+      required: false

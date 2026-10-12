@@ -9,7 +9,7 @@ Quick answers for the most common issues when running the UnoPim MCP Bridge.
 - The `cwd` in your editor's MCP config must point to the UnoPim project root (where `artisan` lives).
 - If the command hangs silently, make sure you haven't enabled extra output in `bootstrap/app.php` or a custom service provider — stdio transport requires that **only** JSON-RPC frames are written to `stdout`.
 
-### HTTP `POST /api/mcp/unopim` returns `401 Unauthorized`
+### HTTP `POST /mcp/unopim` returns `401 Unauthorized`
 - Either disable auth for local testing with `MCP_API_AUTH=false`, or include a valid Bearer token. The HTTP route applies `auth:api` (Passport) when `config('mcp.api_auth')` is `true`.
 - In the browser-based inspector, sessions behind CSRF guards won't work — the endpoint lives under the `api` middleware group.
 
@@ -23,7 +23,7 @@ The MCP HTTP route is registered under the `api` middleware group and should **n
 ### `Forbidden: Unauthorized access to executed [tool]`
 Coming from `PimCallTool::isAuthorized()`. Either:
 - Grant the caller the mapped permission (see [Tool Reference → Permission Mapping](tool-reference.md#permission-mapping)).
-- Grant the generic `settings` permission, which is accepted as an override for every tool.
+- Developer tools and dynamic skills need a role with full access, and over HTTP also `MCP_REMOTE_DEVELOPER_TOOLS=true`.
 - Use the stdio transport for local development — it bypasses ACL unless `APP_ENV=testing`.
 
 ### `Rate limit exceeded. Please slow down your requests.`

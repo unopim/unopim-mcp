@@ -58,6 +58,8 @@ class AttributeUpsertTool extends BaseMcpTool
                     $results[] = ['id' => $attribute->id, 'code' => $attribute->code, 'action' => 'updated'];
                 } else {
                     if (empty($attributeData['type'])) {
+                        DB::rollBack();
+
                         return Response::error("Attribute [{$code}] does not exist. The 'type' field is required for creation.");
                     }
 

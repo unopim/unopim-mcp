@@ -15,3 +15,17 @@ use Webkul\MCP\Tests\MCPTestCase;
 */
 
 uses(MCPTestCase::class)->in('Feature', 'Unit');
+
+/**
+ * Product values that set the channel and locale scoped `name` attribute.
+ */
+function productNameValues(string $name): array
+{
+    $channel = core()->getDefaultChannel();
+
+    return [
+        'channel_locale_specific' => [
+            $channel->code => [$channel->locales->first()->code => ['name' => $name]],
+        ],
+    ];
+}

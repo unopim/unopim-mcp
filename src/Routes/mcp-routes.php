@@ -2,6 +2,7 @@
 
 use Laravel\Mcp\Facades\Mcp;
 use Webkul\MCP\Http\Middleware\AuthenticateAdminFromApiGuard;
+use Webkul\MCP\Http\Middleware\AuthenticateMcpRequest;
 use Webkul\MCP\Servers\UnoPimAgentServer;
 
 /**
@@ -13,12 +14,7 @@ use Webkul\MCP\Servers\UnoPimAgentServer;
  * need the 401 and its `WWW-Authenticate` challenge to re-authorize; a redirect
  * gives them nothing to act on and the connector drops.
  */
-$middleware = [];
-
-if (config('mcp.api_auth')) {
-    $middleware[] = 'auth:api';
-}
-
-$middleware[] = AuthenticateAdminFromApiGuard::class;
-
-Mcp::web('mcp/unopim', UnoPimAgentServer::class)->middleware($middleware);
+Mcp::web('mcp/unopim', UnoPimAgentServer::class)->middleware([
+    AuthenticateMcpRequest::class.':api',
+    AuthenticateAdminFromApiGuard::class,
+]);

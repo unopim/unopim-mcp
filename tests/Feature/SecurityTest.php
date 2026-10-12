@@ -10,7 +10,7 @@ it('blocks unauthorized tool calls when api auth is enabled', function () {
     Config::set('mcp.api_auth', true);
 
     $request = new JsonRpcRequest('1', 'callTool', ['name' => 'upsert_products', 'arguments' => ['id' => 1]]);
-    $context = $this->createMock(ServerContext::class);
+    $context = $this->createStub(ServerContext::class);
 
     $tool = app(PimCallTool::class);
     $response = $tool->handle($request, $context);

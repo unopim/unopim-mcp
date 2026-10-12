@@ -60,11 +60,11 @@ class UnoPimQueryBuilder
                 break;
 
             case 'whereIn':
-                $query->whereIn($field, (array) $value);
+                $query->whereIn($field, $this->listValue($value));
                 break;
 
             case 'whereNotIn':
-                $query->whereNotIn($field, (array) $value);
+                $query->whereNotIn($field, $this->listValue($value));
                 break;
 
             case 'like':
@@ -79,6 +79,27 @@ class UnoPimQueryBuilder
                 $query->where($field, 'like', '%'.$value);
                 break;
         }
+    }
+
+    /**
+     * Normalize an IN / NOT IN value into a list.
+     *
+     * The tool schemas declare `value` as a string, so schema-driven clients send
+     * multiple values as "a,b"; arrays keep working for clients that send them.
+     *
+     * @return array<int, mixed>
+     */
+    protected function listValue(mixed $value): array
+    {
+        if (is_string($value)) {
+            $value = explode(',', $value);
+        }
+
+        return collect((array) $value)
+            ->map(fn (mixed $item): mixed => is_string($item) ? trim($item) : $item)
+            ->reject(fn (mixed $item): bool => $item === '' || $item === null)
+            ->values()
+            ->all();
     }
 
     /**

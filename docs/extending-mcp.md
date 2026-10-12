@@ -94,7 +94,7 @@ class MyCustomTool extends BaseMcpTool
 Add your tool class to the `Webkul\MCP\Registry\ToolRegistry`.
 
 ```php
-// packages/Webkul/MCP/src/Registry/ToolRegistry.php
+// src/Registry/ToolRegistry.php
 
 public static function tools(): array
 {
@@ -116,6 +116,6 @@ When adding tools that perform write operations or command execution:
 - Always include validation for arguments.
 
 ### Testing
-Every new tool should have a corresponding test in `packages/Webkul/MCP/tests/`.
+Every new tool should have a corresponding test in the package's `tests/` directory.
 - Use **Unit Tests** for isolated logic.
 - Use **Feature Tests** for end-to-end tool execution via the MCP server.

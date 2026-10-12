@@ -164,7 +164,7 @@ Operators are matched case-insensitively. Unknown operators throw `InvalidArgume
 
 ## Permission Mapping
 
-`PimCallTool::isAuthorized()` maps each tool to a UnoPim permission checked via `bouncer()`. Tools not explicitly mapped fall back to the `catalog` permission. When the server runs under `php artisan mcp:start` (console STDIO transport) and not in the `testing` environment, permission checks are bypassed — the operator already has machine access.
+`PimCallTool::isAuthorized()` maps each tool to a UnoPim permission checked via `bouncer()`. Tools without a mapping — the developer tools and dynamic skills — require a role with full access. When the server runs under `php artisan mcp:start` (stdio) outside the `testing` environment, permission checks are bypassed — the operator already has machine access.
 
 | Tool | Permission |
 |---|---|
@@ -173,8 +173,17 @@ Operators are matched case-insensitively. Unknown operators throw `InvalidArgume
 | `upsert_products` | `catalog.products.create` |
 | `search_categories` | `catalog.categories` |
 | `upsert_categories` | `catalog.categories.create` |
-| `search_attributes` | `catalog.attributes` |
+| `search_attributes`, `search_attribute_options` | `catalog.attributes` |
 | `upsert_attributes` | `catalog.attributes.create` |
+| `search_families` | `catalog.families` |
+| `upsert_families` | `catalog.families.create` |
+| `search_attribute_groups` | `catalog.attribute_groups` |
+| `upsert_attribute_groups` | `catalog.attribute_groups.create` |
 | `search_settings`, `upsert_settings` | `settings` |
-| `dev_tools`, `run_skill` | `settings` |
-| Everything else (families, groups, currencies, jobs, dynamic skills) | `catalog` (fallback) |
+| `search_currencies` | `settings.currencies` |
+| `upsert_currencies` | `settings.currencies.create` |
+| `search_jobs` | `data_transfer` |
+| `get_job_execution` | `data_transfer.job_tracker` |
+| `dev_tools`, `run_skill`, `get_app_info`, `get_database_schema`, `run_database_query`, `read_logs`, dynamic skills | Full access role |
+
+Over HTTP, the developer tools and dynamic skills are only served when `MCP_REMOTE_DEVELOPER_TOOLS=true`.

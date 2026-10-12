@@ -10,7 +10,7 @@ the newest patch release before reporting.
 
 | Version | PHP  | Laravel | UnoPim | Security Fixes |
 | ------- | ---- | ------- | ------ | -------------- |
-| 1.0.x   | 8.2+ | 11.x+   | 1.0+   | ✅ Supported   |
+| 1.0.x   | 8.4.1+ | 13.x  | 3.0+   | ✅ Supported   |
 
 ---
 

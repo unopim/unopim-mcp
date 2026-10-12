@@ -1,6 +1,6 @@
 # Configuration
 
-Reference for every configuration key in `config/mcp.php` and the env vars that drive them. The shipped defaults live in `packages/Webkul/MCP/src/Config/mcp.php` and are merged at register time, so the published file only needs to list the keys you want to override.
+Reference for every configuration key in `config/mcp.php` and the env vars that drive them. The shipped defaults live in the package's `src/Config/mcp.php` and are merged at register time, so the published file only needs to list the keys you want to override.
 
 ## Publishing the config
 

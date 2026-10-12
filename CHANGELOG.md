@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.3] - Unreleased
+## [1.0.3] - 2026-10-12
 
 ### Security
 - Every catalog, settings and data transfer tool now checks its own UnoPim ACL permission. Tools without a mapping, including developer tools and dynamic skills, require a full access role. Previously they fell back to the `catalog` permission, and any `settings` permission granted every tool.
@@ -16,11 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `IN` / `NOT IN` filters accept a comma-separated string as well as an array ([#5](https://github.com/unopim/unopim-mcp/issues/5)).
 - The product and attribute upserts no longer leave a database transaction open when they return an error early.
 - A consent view the host application already bound is no longer overridden.
+- `get_product` looks up by `id` only when the identifier is numeric; comparing a SKU with the integer column failed every SKU lookup on PostgreSQL.
+- MCP requests are authenticated per request: `mcp.api_auth` is honoured at runtime, and a client that sends no `Accept` header receives the 401 challenge instead of a login redirect.
+- `mcp:inspector` runs through the `Process` facade, so it can be faked in tests instead of launching the real Inspector.
 
 ### Changed
 - Requires `laravel/mcp` `^0.7.1`, where the JsonRpc classes moved; older releases failed every `tools/call`.
 - `upsert_products` now rejects values the REST API rejects, for example `common.name` when `name` is channel and locale scoped.
 - Translations ship for all 33 UnoPim locales.
+- CI runs Pint, Pest on MySQL, MariaDB and PostgreSQL, PHPStan and the translation check against the latest UnoPim release.
 
 ### Upgrade notes
 - Admins on custom roles need the matching ACL permission per tool; `settings` is no longer a blanket grant.

@@ -51,3 +51,14 @@ it('retrieves product completeness via get_product', function () {
 
     Product::where('sku', $sku)->delete();
 });
+
+it('finds a product by numeric id as well as by sku', function () {
+    $family = AttributeFamily::first() ?? AttributeFamily::factory()->create();
+    $product = Product::factory()->create(['sku' => 'BYID-'.uniqid(), 'attribute_family_id' => $family->id]);
+
+    UnoPimAgentServer::tool(ProductGetTool::class, ['identifier' => (string) $product->id])
+        ->assertOk()->assertSee($product->sku);
+
+    UnoPimAgentServer::tool(ProductGetTool::class, ['identifier' => $product->sku])
+        ->assertOk()->assertSee($product->sku);
+});

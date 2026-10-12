@@ -34,9 +34,9 @@ class ProductGetTool extends BaseMcpTool
 
         $identifier = $validated['identifier'];
 
-        $product = $this->productRepository->where('id', $identifier)
-            ->orWhere('sku', $identifier)
-            ->first();
+        $product = ctype_digit($identifier) ? $this->productRepository->find((int) $identifier) : null;
+
+        $product ??= $this->productRepository->findOneByField('sku', $identifier);
 
         if (! $product) {
             return Response::error("Product with identifier '{$identifier}' not found.");

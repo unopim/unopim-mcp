@@ -6,6 +6,7 @@ use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Contracts\Transport;
 use Laravel\Mcp\Server\Prompt;
 use Laravel\Mcp\Server\Tool;
+use Laravel\Mcp\Server\Transport\HttpTransport;
 use Webkul\MCP\Prompts\Catalog\CatalogAnalysisPrompt;
 use Webkul\MCP\Registry\ToolRegistry;
 use Webkul\MCP\Resources\Catalog\CatalogSchemaResource;
@@ -23,7 +24,7 @@ class UnoPimAgentServer extends Server
     /**
      * The version of the MCP server.
      */
-    protected string $version = '1.0.0';
+    protected string $version = '1.0.3';
 
     /**
      * The instructions for AI clients connecting to this server.
@@ -89,7 +90,26 @@ class UnoPimAgentServer extends Server
         parent::__construct($transport);
 
         $this->tools = ToolRegistry::tools();
+
+        if (! $this->servesDeveloperTools($transport)) {
+            $this->tools = array_values(array_filter(
+                $this->tools,
+                fn ($tool): bool => ! in_array($tool, ToolRegistry::developerTools(), true),
+            ));
+
+            return;
+        }
+
         $this->loadDynamicSkills();
+    }
+
+    /**
+     * Developer tools and dynamic skills run commands, SQL and file writes, so the
+     * remote HTTP endpoint only serves them when the installation opts in.
+     */
+    protected function servesDeveloperTools(Transport $transport): bool
+    {
+        return ! $transport instanceof HttpTransport || config('mcp.remote_developer_tools', false);
     }
 
     protected function boot(): void

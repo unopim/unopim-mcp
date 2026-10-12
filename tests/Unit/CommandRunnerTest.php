@@ -75,15 +75,7 @@ it('throws exception for empty command', function () {
 });
 
 it('handles quoted arguments correctly', function () {
-    // This should parse correctly and not throw security errors
-    try {
-        $this->runner->run('php artisan make:model "My Model"');
-    } catch (RuntimeException $e) {
-        // The command may fail because make:model does not accept spaces,
-        // but it should NOT fail due to security restrictions
-        expect($e->getMessage())->not->toContain('Command not allowed');
-        expect($e->getMessage())->not->toContain('Dangerous characters');
-    }
+    expect($this->runner->run('php artisan help "list"'))->toContain('Usage:');
 });
 
 it('blocks node commands', function () {

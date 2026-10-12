@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Laravel\Mcp\Server\Transport\FakeTransporter;
+use Laravel\Mcp\Server\Transport\HttpTransport;
 use Webkul\MCP\Servers\UnoPimAgentServer;
 
 beforeEach(function () {
@@ -89,4 +90,29 @@ it('registers catalog analysis prompt', function () {
     $promptNames = $context->prompts()->map(fn ($p) => $p->name())->toArray();
 
     expect($promptNames)->toContain('analyze-catalog');
+});
+
+it('leaves developer tools and dynamic skills off the remote http server by default', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    $toolNames = $server->createContext()->tools()->map(fn ($t) => $t->name())->toArray();
+
+    expect($toolNames)->toContain('search_products')
+        ->not->toContain('dev_tools')
+        ->not->toContain('run_skill')
+        ->not->toContain('run_database_query')
+        ->not->toContain('read_logs')
+        ->not->toContain('get_database_schema')
+        ->not->toContain('get_app_info')
+        ->and(collect($toolNames)->filter(fn ($name) => str_starts_with($name, 'execute_')))->toBeEmpty();
+});
+
+it('serves developer tools over http when the installation opts in', function () {
+    Config::set('mcp.remote_developer_tools', true);
+
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    $toolNames = $server->createContext()->tools()->map(fn ($t) => $t->name())->toArray();
+
+    expect($toolNames)->toContain('dev_tools')->toContain('run_database_query');
 });

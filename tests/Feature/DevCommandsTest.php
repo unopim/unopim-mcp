@@ -1,6 +1,8 @@
 <?php
 
+use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Process;
 use Webkul\MCP\DevTools\PluginGenerator;
 use Webkul\MCP\DevTools\TestGenerator;
 
@@ -51,12 +53,15 @@ it('rejects invalid action in mcp:make', function () {
 });
 
 it('mcp:inspector outputs launch message', function () {
-    // The inspector will try to run npx which may not be available in test env.
-    // We just verify the command parses arguments and starts outputting info.
+    Process::fake();
+
     Artisan::call('mcp:inspector', [
         'server' => 'unopim-dev',
         '--port' => 9999,
     ]);
 
     expect(Artisan::output())->toContain('Launching MCP Inspector');
+
+    Process::assertRan(fn (PendingProcess $process): bool => in_array('@modelcontextprotocol/inspector', (array) $process->command, true)
+        && $process->environment['PORT'] === 9999);
 });

@@ -24,6 +24,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Remote Developer Tools
+    |--------------------------------------------------------------------------
+    |
+    | Developer tools and dynamic skills (file writes, commands, SQL, logs) are
+    | always available over stdio. Enable this to serve them over HTTP too.
+    |
+    */
+    'remote_developer_tools' => env('MCP_REMOTE_DEVELOPER_TOOLS', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Path Restriction
     |--------------------------------------------------------------------------
     |

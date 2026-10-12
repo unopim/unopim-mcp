@@ -80,43 +80,57 @@ class PimCallTool extends BaseCallTool
 
     /**
      * Check if the current user (or CLI agent) is authorized to execute the tool.
+     *
+     * Tools without a mapped permission, including developer tools and dynamic skills,
+     * require a full access role because they reach beyond the catalog.
      */
     protected function isAuthorized(string $toolName): bool
     {
-        // If running in console (STDIO mode) and NOT in a test environment,
-        // we allow full access by default as the operator has machine access.
         if (app()->runningInConsole() && ! app()->environment('testing')) {
             return true;
         }
 
-        $permissionMap = [
-            // Catalog tools
-            'get_catalog_schema' => 'catalog',
-            'search_products'    => 'catalog.products',
-            'get_product'        => 'catalog.products',
-            'upsert_products'    => 'catalog.products.create',
-            'search_categories'  => 'catalog.categories',
-            'upsert_categories'  => 'catalog.categories.create',
-            'search_attributes'  => 'catalog.attributes',
-            'upsert_attributes'  => 'catalog.attributes.create',
-
-            // Settings tools
-            'search_settings' => 'settings',
-            'upsert_settings' => 'settings',
-
-            // Dev tools — restricted to settings/admin
-            'dev_tools' => 'settings',
-            'run_skill' => 'settings',
-        ];
-
-        // If specific permission mapped, check it. Otherwise, assume they need generic catalog/settings access.
-        $requiredPerm = $permissionMap[$toolName] ?? 'catalog';
-
-        if (function_exists('bouncer')) {
-            return bouncer()->hasPermission($requiredPerm) || bouncer()->hasPermission('settings');
+        if (! function_exists('bouncer')) {
+            return true;
         }
 
-        return true;
+        $permission = $this->permissionMap()[$toolName] ?? null;
+
+        if ($permission === null) {
+            return auth()->guard('admin')->user()?->role?->permission_type === 'all';
+        }
+
+        return bouncer()->hasPermission($permission);
+    }
+
+    /**
+     * The UnoPim ACL permission each catalog, settings and data transfer tool requires.
+     *
+     * @return array<string, string>
+     */
+    protected function permissionMap(): array
+    {
+        return [
+            'get_catalog_schema' => 'catalog',
+            'search_products' => 'catalog.products',
+            'get_product' => 'catalog.products',
+            'upsert_products' => 'catalog.products.create',
+            'search_categories' => 'catalog.categories',
+            'upsert_categories' => 'catalog.categories.create',
+            'search_attributes' => 'catalog.attributes',
+            'upsert_attributes' => 'catalog.attributes.create',
+            'search_attribute_options' => 'catalog.attributes',
+            'search_families' => 'catalog.families',
+            'upsert_families' => 'catalog.families.create',
+            'search_attribute_groups' => 'catalog.attribute_groups',
+            'upsert_attribute_groups' => 'catalog.attribute_groups.create',
+            'search_settings' => 'settings',
+            'upsert_settings' => 'settings',
+            'search_currencies' => 'settings.currencies',
+            'upsert_currencies' => 'settings.currencies.create',
+            'search_jobs' => 'data_transfer',
+            'get_job_execution' => 'data_transfer.job_tracker',
+        ];
     }
 
     /**
@@ -144,14 +158,20 @@ class PimCallTool extends BaseCallTool
             'get_product',
             'search_categories',
             'search_attributes',
+            'search_attribute_options',
+            'search_families',
+            'search_attribute_groups',
             'search_settings',
+            'search_currencies',
+            'search_jobs',
+            'get_job_execution',
         ];
 
         if (! in_array($toolName, $readOnlyTools)) {
             Log::info("MCP Audit Log: Executed [{$toolName}]", [
                 'user_id' => request()->user()?->id ?? 'cli',
-                'ip'      => request()->ip() ?? 'local',
-                'args'    => $arguments,
+                'ip' => request()->ip() ?? 'local',
+                'args' => $arguments,
             ]);
         }
     }

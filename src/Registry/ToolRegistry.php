@@ -2,6 +2,7 @@
 
 namespace Webkul\MCP\Registry;
 
+use Laravel\Mcp\Server\Tool;
 use Webkul\MCP\Tools\Catalog\AttributeFamilySearchTool;
 use Webkul\MCP\Tools\Catalog\AttributeFamilyUpsertTool;
 use Webkul\MCP\Tools\Catalog\AttributeGroupSearchTool;
@@ -71,6 +72,23 @@ class ToolRegistry
             JobExecutionTool::class,
 
             // Dev & Skill Capabilities
+            RunSkillTool::class,
+            DevToolsTool::class,
+            AppInfoTool::class,
+            DatabaseSchemaTool::class,
+            DatabaseQueryTool::class,
+            LogReadTool::class,
+        ];
+    }
+
+    /**
+     * Tools that reach beyond the catalog into files, commands, SQL and logs.
+     *
+     * @return array<int, class-string<Tool>>
+     */
+    public static function developerTools(): array
+    {
+        return [
             RunSkillTool::class,
             DevToolsTool::class,
             AppInfoTool::class,

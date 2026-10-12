@@ -1,5 +1,6 @@
 <?php
 
+use Webkul\DataTransfer\Helpers\Import;
 use Webkul\DataTransfer\Models\JobInstances;
 use Webkul\DataTransfer\Models\JobTrack;
 use Webkul\MCP\Servers\UnoPimAgentServer;
@@ -24,7 +25,11 @@ it('gets job execution details', function () {
     // Create a dummy job track (execution) record
     $execution = JobTrack::create([
         'job_instances_id' => $job->id,
+        'type' => $job->type,
+        'action' => $job->action,
+        'validation_strategy' => $job->validation_strategy ?? Import::VALIDATION_STRATEGY_SKIP_ERRORS,
         'state' => 'completed',
+        'meta' => [],
         'processed_rows_count' => 10,
         'errors_count' => 0,
     ]);

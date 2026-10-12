@@ -16,13 +16,13 @@ it('creates products in bulk via upsert', function () {
                 'sku' => $sku1,
                 'type' => 'simple',
                 'attribute_family_id' => $family->id,
-                'values' => ['common' => ['name' => 'Bulk Product 1']],
+                'values' => $this->productNameValues('Bulk Product 1'),
             ],
             [
                 'sku' => $sku2,
                 'type' => 'simple',
                 'attribute_family_id' => $family->id,
-                'values' => ['common' => ['name' => 'Bulk Product 2']],
+                'values' => $this->productNameValues('Bulk Product 2'),
             ],
         ],
     ])->assertOk()->assertSee($sku1)->assertSee($sku2);
@@ -47,11 +47,11 @@ it('updates products in bulk via upsert', function () {
         'products' => [
             [
                 'sku' => $sku1,
-                'values' => ['common' => ['name' => 'Updated Bulk 1']],
+                'values' => $this->productNameValues('Updated Bulk 1'),
             ],
             [
                 'sku' => $sku2,
-                'values' => ['common' => ['name' => 'Updated Bulk 2']],
+                'values' => $this->productNameValues('Updated Bulk 2'),
             ],
         ],
     ])->assertOk()->assertSee('updated');

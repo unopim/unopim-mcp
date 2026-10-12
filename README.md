@@ -112,6 +112,28 @@ that maps the Passport token user onto UnoPim's ACL (`bouncer()`).
 
 Tool calls respect the connected admin's ACL permissions.
 
+#### Nginx: allow `/.well-known/`
+
+Remote clients discover the OAuth server through `/.well-known/oauth-authorization-server` and
+`/.well-known/oauth-protected-resource`. A generic hidden-file rule such as `location ~ /\. { deny all; }`
+(the stock UnoPim Docker `nginx.conf` ships one) answers those with `403` before Laravel sees them.
+Add this block **above** the hidden-file rule and reload Nginx:
+
+```nginx
+location ^~ /.well-known/ {
+    try_files $uri /index.php?$query_string;
+}
+```
+
+Apache needs no change; the stock `public/.htaccess` does not block dot paths.
+
+#### Developer tools over HTTP
+
+`dev_tools`, `run_skill`, `get_app_info`, `get_database_schema`, `run_database_query`, `read_logs` and
+dynamic skills write files, run commands, query SQL and read logs. They are always available over stdio
+(`php artisan mcp:dev`), but the remote `mcp/unopim` endpoint only serves them when
+`MCP_REMOTE_DEVELOPER_TOOLS=true`, and even then only to admins whose role has full access.
+
 ### Windsurf — `~/.windsurf/mcp.json`
 
 ```jsonc
@@ -139,6 +161,9 @@ return [
 
     // Max requests per minute per tool per caller (IP for HTTP, "cli" for stdio).
     'rate_limit' => env('MCP_RATE_LIMIT', 60),
+
+    // Serve developer tools and dynamic skills over HTTP too (always on over stdio).
+    'remote_developer_tools' => env('MCP_REMOTE_DEVELOPER_TOOLS', false),
 
     // FileManager / dev-tool jail. Anything outside is rejected.
     'allowed_paths' => [

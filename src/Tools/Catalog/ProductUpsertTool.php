@@ -4,12 +4,18 @@ namespace Webkul\MCP\Tools\Catalog;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Validation\ValidationException;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
+use Webkul\AdminApi\Http\Controllers\API\Catalog\ProductController;
 use Webkul\MCP\Tools\BaseMcpTool;
+use Webkul\Product\Models\Product;
 use Webkul\Product\Repositories\ProductRepository;
+use Webkul\Product\Type\AbstractType;
+use Webkul\Product\Validator\ProductValuesValidator;
 
 #[IsDestructive]
 #[IsIdempotent]
@@ -26,7 +32,9 @@ class ProductUpsertTool extends BaseMcpTool
     public string $name = 'upsert_products';
 
     public function __construct(
-        protected ProductRepository $productRepository
+        protected ProductRepository $productRepository,
+        protected ProductController $productController,
+        protected ProductValuesValidator $valuesValidator,
     ) {}
 
     protected function execute(Request $request): Response
@@ -50,38 +58,38 @@ class ProductUpsertTool extends BaseMcpTool
                 $product = $this->productRepository->findOneByField('sku', $sku);
 
                 if ($product) {
-                    $updateData = [];
-                    if (isset($productData['values'])) {
-                        $updateData['values'] = $productData['values'];
-                    }
-
-                    if (! empty($updateData)) {
-                        $product = $this->productRepository->update($updateData, $product->id);
-                    }
+                    $product = $this->applyValues($product, $productData['values'] ?? []);
 
                     $results[] = ['id' => $product->id, 'sku' => $product->sku, 'action' => 'updated'];
-                } else {
-                    if (empty($productData['type']) || empty($productData['attribute_family_id'])) {
-                        return Response::error("Product [{$sku}] does not exist. Both 'type' and 'attribute_family_id' are required for creation.");
-                    }
 
-                    $product = $this->productRepository->create([
-                        'type' => $productData['type'],
-                        'attribute_family_id' => $productData['attribute_family_id'],
-                        'sku' => $productData['sku'],
-                    ]);
-
-                    if (! empty($productData['values'])) {
-                        $product = $this->productRepository->update([
-                            'values' => $productData['values'],
-                        ], $product->id);
-                    }
-
-                    $results[] = ['id' => $product->id, 'sku' => $product->sku, 'action' => 'created'];
+                    continue;
                 }
+
+                if (empty($productData['type']) || empty($productData['attribute_family_id'])) {
+                    DB::rollBack();
+
+                    return Response::error("Product [{$sku}] does not exist. Both 'type' and 'attribute_family_id' are required for creation.");
+                }
+
+                $product = $this->productRepository->create([
+                    'type' => $productData['type'],
+                    'attribute_family_id' => $productData['attribute_family_id'],
+                    'sku' => $sku,
+                ]);
+
+                $product = $this->applyValues($product, $productData['values'] ?? []);
+
+                $results[] = ['id' => $product->id, 'sku' => $product->sku, 'action' => 'created'];
             }
 
             DB::commit();
+        } catch (ValidationException $e) {
+            DB::rollBack();
+
+            return Response::error(json_encode([
+                'message' => trans('mcp::app.tools.upsert-products.invalid-values'),
+                'errors' => $e->validator->errors()->messages(),
+            ]));
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -89,6 +97,25 @@ class ProductUpsertTool extends BaseMcpTool
         }
 
         return Response::json(['success' => true, 'results' => $results]);
+    }
+
+    /**
+     * Write values through the same validate-then-merge path as the REST PATCH endpoint,
+     * so stored values, associations and other locales survive a partial payload.
+     *
+     * @throws ValidationException
+     */
+    protected function applyValues(Product $product, array $values): Product
+    {
+        if (empty($values)) {
+            return $product;
+        }
+
+        $this->valuesValidator->validateOnlyExistingSectionData(data: $values, productId: $product->id);
+
+        Event::dispatch('catalog.product.update.before', $product->id);
+
+        return $this->productController->patchProduct($product, [AbstractType::PRODUCT_VALUES_KEY => $values]);
     }
 
     /**

@@ -151,3 +151,39 @@ it('returns empty query when no filters are provided', function () {
 
     expect($result)->toBe($query);
 });
+
+it('splits a comma separated string for the IN operator', function () {
+    $query = Mockery::mock(Builder::class);
+    $query->shouldReceive('whereIn')->once()->with('sku', ['SKU-A', 'SKU-B']);
+
+    $this->builder->applyFilters($query, [
+        ['field' => 'sku', 'operator' => 'IN', 'value' => 'SKU-A, SKU-B'],
+    ]);
+});
+
+it('splits a comma separated string for the NOT IN operator', function () {
+    $query = Mockery::mock(Builder::class);
+    $query->shouldReceive('whereNotIn')->once()->with('type', ['bundle', 'grouped']);
+
+    $this->builder->applyFilters($query, [
+        ['field' => 'type', 'operator' => 'NOT IN', 'value' => 'bundle,grouped'],
+    ]);
+});
+
+it('drops empty entries from doubled or trailing commas', function () {
+    $query = Mockery::mock(Builder::class);
+    $query->shouldReceive('whereIn')->once()->with('sku', ['SKU-A', 'SKU-B']);
+
+    $this->builder->applyFilters($query, [
+        ['field' => 'sku', 'operator' => 'IN', 'value' => 'SKU-A,,SKU-B,'],
+    ]);
+});
+
+it('keeps commas inside a CONTAINS value', function () {
+    $query = Mockery::mock(Builder::class);
+    $query->shouldReceive('where')->once()->with('name', 'like', '%red, blue%');
+
+    $this->builder->applyFilters($query, [
+        ['field' => 'name', 'operator' => 'CONTAINS', 'value' => 'red, blue'],
+    ]);
+});

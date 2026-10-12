@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - Unreleased
+
+### Security
+- Every catalog, settings and data transfer tool now checks its own UnoPim ACL permission. Tools without a mapping, including developer tools and dynamic skills, require a full access role. Previously they fell back to the `catalog` permission, and any `settings` permission granted every tool.
+- The remote HTTP endpoint no longer serves developer tools (`dev_tools`, `run_skill`, `get_app_info`, `get_database_schema`, `run_database_query`, `read_logs`) or dynamic skills unless `MCP_REMOTE_DEVELOPER_TOOLS=true`. Stdio (`mcp:dev`) is unchanged.
+
+### Fixed
+- `upsert_products` validates and merges values through the same path as the REST PATCH endpoint, so associations survive partial updates, unknown option codes are rejected and every locale in a payload is stored ([#4](https://github.com/unopim/unopim-mcp/issues/4)).
+- `IN` / `NOT IN` filters accept a comma-separated string as well as an array ([#5](https://github.com/unopim/unopim-mcp/issues/5)).
+- The product and attribute upserts no longer leave a database transaction open when they return an error early.
+- A consent view the host application already bound is no longer overridden.
+
+### Changed
+- Requires `laravel/mcp` `^0.7.1`, where the JsonRpc classes moved; older releases failed every `tools/call`.
+- `upsert_products` now rejects values the REST API rejects, for example `common.name` when `name` is channel and locale scoped.
+- Translations ship for all 33 UnoPim locales.
+
+### Upgrade notes
+- Admins on custom roles need the matching ACL permission per tool; `settings` is no longer a blanket grant.
+- Set `MCP_REMOTE_DEVELOPER_TOOLS=true` to keep serving developer tools to remote clients.
+- Stock UnoPim Docker/Nginx: allow `/.well-known/` above the hidden-file rule, see the README ([#16](https://github.com/unopim/unopim-mcp/issues/16)).
+
+## [1.0.2] - 2026-09-04
+
+### Fixed
+- UnoPim 3 / Passport 13: the package ships and registers its own OAuth consent screen and moves Passport onto the `admin` guard, fixing the HTTP 500 on `/oauth/authorize` ([#13](https://github.com/unopim/unopim-mcp/issues/13)).
+- Remote MCP clients stay connected: an expired or missing token answers 401 with a `WWW-Authenticate` challenge instead of a login redirect.
+- All 25 shipped tools are registered ([#6](https://github.com/unopim/unopim-mcp/issues/6)).
+- Annotations on two read-only tools.
+
+### Changed
+- Supports Laravel 13 and requires `laravel/passport` `^13.0`.
+
+## [1.0.1] - 2026-06-12
+
+### Added
+- Self-contained Passport OAuth integration for remote MCP clients, including the claude.ai custom connector flow.
+
+### Fixed
+- The guard bridge is skipped when the `api` or `admin` guard is undefined.
+
 ## [1.0.0] - 2026-04-17
 
 ### Added

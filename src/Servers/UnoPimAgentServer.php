@@ -24,7 +24,7 @@ class UnoPimAgentServer extends Server
     /**
      * The version of the MCP server.
      */
-    protected string $version = '1.0.0';
+    protected string $version = '1.0.3';
 
     /**
      * The instructions for AI clients connecting to this server.

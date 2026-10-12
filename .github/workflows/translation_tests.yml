@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout MCP
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: mcp-package
 
@@ -36,7 +36,7 @@ jobs:
           echo "ref=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Checkout UnoPim
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: unopim/unopim
           ref: ${{ steps.unopim.outputs.ref }}

@@ -40,8 +40,8 @@ class UnoPimAgentServer extends Server
         - **Family & Group Management**: Use `search_families` / `upsert_families` for attribute families, and `search_attribute_groups` / `upsert_attribute_groups` for the groups that organise attributes within a family.
         - **Settings Management**: Use `search_settings` and `upsert_settings` to manage channels and locales, and `search_currencies` / `upsert_currencies` to manage currencies.
         - **Data Transfer**: Use `search_jobs` to find import/export job instances and `get_job_execution` to inspect a run's status, row counts, and errors.
-        - **Developer Tools**: Use `dev_tools` for file management, command execution, and code generation. Use `run_skill` to execute predefined development skills.
-        - **Diagnostics**: Use `get_app_info` for Laravel/PHP versions and installed packages, `get_database_schema` to introspect tables and columns, `run_database_query` for read-only SQL, and `read_logs` to tail application logs.
+        - **Developer Tools** (stdio, or remote when `MCP_REMOTE_DEVELOPER_TOOLS` is enabled): Use `dev_tools` for file management, command execution, and code generation. Use `run_skill` to execute predefined development skills.
+        - **Diagnostics** (same availability as developer tools): Use `get_app_info` for Laravel/PHP versions and installed packages, `get_database_schema` to introspect tables and columns, `run_database_query` for read-only SQL, and `read_logs` to tail application logs.
         - **Dynamic Skills**: Custom skills loaded from `.ai/skills/` are registered as additional tools.
 
         ### Guidelines

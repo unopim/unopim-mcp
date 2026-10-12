@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Laravel\Mcp\Facades\Mcp;
 use Laravel\Mcp\Server\Middleware\AddWwwAuthenticateHeader;
 use Laravel\Mcp\Server\Middleware\ReorderJsonAccept;
+use Laravel\Passport\Contracts\AuthorizationViewResponse;
 use Laravel\Passport\Passport;
 use Webkul\MCP\Console\Commands\DevMcpCommand;
 use Webkul\MCP\Console\Commands\MCPInspectorCommand;
@@ -115,7 +116,7 @@ class MCPServiceProvider extends ServiceProvider
 
     protected function configurePassportViews(): void
     {
-        if (! class_exists(Passport::class)) {
+        if (! class_exists(Passport::class) || $this->app->bound(AuthorizationViewResponse::class)) {
             return;
         }
 

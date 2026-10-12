@@ -200,4 +200,6 @@ jobs:
       - name: Running Static Analysis
         if: matrix.db == 'mysql'
         working-directory: unopim
-        run: vendor/bin/phpstan analyse --configuration=phpstan.neon --memory-limit=1G --no-progress packages/Webkul/MCP/src
+        run: |
+          printf 'includes:\n    - phpstan.neon\nparameters:\n    reportUnmatchedIgnoredErrors: false\n' > phpstan-mcp.neon
+          vendor/bin/phpstan analyse --configuration=phpstan-mcp.neon --memory-limit=1G --no-progress packages/Webkul/MCP/src

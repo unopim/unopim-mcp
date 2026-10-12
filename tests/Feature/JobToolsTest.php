@@ -25,6 +25,7 @@ it('gets job execution details', function () {
     $execution = JobTrack::create([
         'job_instances_id' => $job->id,
         'type' => $job->type,
+        'action' => $job->action,
         'state' => 'completed',
         'meta' => [],
         'processed_rows_count' => 10,

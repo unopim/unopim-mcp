@@ -192,6 +192,11 @@ jobs:
         working-directory: unopim
         run: vendor/bin/pest --colors=always --testsuite="MCP Feature"
 
+      - name: Show application log on failure
+        if: failure()
+        working-directory: unopim
+        run: tail -n 200 storage/logs/laravel.log || true
+
       - name: Running Static Analysis
         if: matrix.db == 'mysql'
         working-directory: unopim

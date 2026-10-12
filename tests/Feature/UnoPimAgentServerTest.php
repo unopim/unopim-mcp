@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Laravel\Mcp\Server\Transport\FakeTransporter;
@@ -94,7 +93,7 @@ it('registers catalog analysis prompt', function () {
 });
 
 it('leaves developer tools and dynamic skills off the remote http server by default', function () {
-    $server = app(UnoPimAgentServer::class, ['transport' => new HttpTransport(Request::create('/mcp/unopim', 'POST'))]);
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
 
     $toolNames = $server->createContext()->tools()->map(fn ($t) => $t->name())->toArray();
 
@@ -111,7 +110,7 @@ it('leaves developer tools and dynamic skills off the remote http server by defa
 it('serves developer tools over http when the installation opts in', function () {
     Config::set('mcp.remote_developer_tools', true);
 
-    $server = app(UnoPimAgentServer::class, ['transport' => new HttpTransport(Request::create('/mcp/unopim', 'POST'))]);
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
 
     $toolNames = $server->createContext()->tools()->map(fn ($t) => $t->name())->toArray();
 

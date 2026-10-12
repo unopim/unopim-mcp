@@ -24,7 +24,9 @@ it('gets job execution details', function () {
     // Create a dummy job track (execution) record
     $execution = JobTrack::create([
         'job_instances_id' => $job->id,
+        'type' => $job->type,
         'state' => 'completed',
+        'meta' => [],
         'processed_rows_count' => 10,
         'errors_count' => 0,
     ]);

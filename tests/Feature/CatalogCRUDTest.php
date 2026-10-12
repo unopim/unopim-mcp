@@ -33,7 +33,7 @@ it('creates and updates a product via upsert', function () {
         'products' => [
             [
                 'sku' => $sku,
-                'values' => productNameValues('Updated Name'),
+                'values' => $this->productNameValues('Updated Name'),
             ],
         ],
     ])->assertOk()->assertSee('updated');

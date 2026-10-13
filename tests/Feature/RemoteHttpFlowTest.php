@@ -80,3 +80,18 @@ it('applies the tool permission to a remote catalog-only admin', function () {
     expect($allowed['result']['isError'] ?? false)->toBeFalse()
         ->and($denied['result']['content'][0]['text'] ?? '')->toContain('Forbidden');
 });
+
+it('refuses a remote call from a disabled admin with a 401 challenge', function () {
+    config(['mcp.api_auth' => true]);
+
+    $admin = remoteAdmin('all');
+    $admin->update(['status' => 0]);
+
+    Passport::actingAs($admin->fresh(), [], 'api');
+
+    $response = $this->withHeaders(['Accept' => 'application/json, text/event-stream'])
+        ->postJson('/mcp/unopim', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'search_products', 'arguments' => ['limit' => 1]]]);
+
+    expect($response->status())->toBe(401)
+        ->and($response->headers->get('WWW-Authenticate'))->toContain('Bearer');
+});

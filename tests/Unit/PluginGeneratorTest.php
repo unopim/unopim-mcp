@@ -126,3 +126,17 @@ it('generates migration with correct table name', function () {
     expect($migrationContent)->toContain('wk_connector_test_credentials');
     expect($migrationContent)->toContain('Schema::create');
 });
+
+it('rejects a plugin name that would leave the packages directory', function (string $name) {
+    expect(fn () => $this->generator->generate($name, 'generic'))
+        ->toThrow(InvalidArgumentException::class);
+
+    expect(File::exists(base_path('packages/Evil')))->toBeFalse()
+        ->and(File::exists(base_path('Evil')))->toBeFalse();
+})->with([
+    '../../Evil',
+    '../Evil',
+    'Evil/../../X',
+    '1Evil',
+    '',
+]);

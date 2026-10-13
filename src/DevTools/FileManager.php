@@ -53,33 +53,68 @@ class FileManager implements FileManagerInterface
 
     /**
      * Validate the path to ensure it is within allowed project boundaries.
+     *
+     * Symlinks are resolved before comparing, and an allowed path only matches a whole
+     * directory, so `/var/www/app-evil` is not inside `/var/www/app`.
      */
     private function validateAndResolvePath(string $path): string
     {
         $allowedPaths = config('mcp.allowed_paths', [base_path(), sys_get_temp_dir()]);
 
-        // Resolve to absolute path
         $absolutePath = $this->isAbsolutePath($path)
             ? $path
             : base_path().DIRECTORY_SEPARATOR.$path;
 
-        // Normalise without requiring existence
-        $normalised = $this->normalisePath($absolutePath);
+        $resolved = $this->resolveRealPath($this->normalisePath($absolutePath));
 
-        $isAllowed = false;
         foreach ($allowedPaths as $allowed) {
             $realAllowed = realpath($allowed);
-            if ($realAllowed && str_starts_with($normalised, $realAllowed)) {
-                $isAllowed = true;
-                break;
+
+            if ($resolved !== null && $realAllowed !== false && $this->isWithin($resolved, $realAllowed)) {
+                return $resolved;
             }
         }
 
-        if (! $isAllowed) {
-            throw new \RuntimeException("Security: Access to path [{$path}] is restricted. It must be within allowed project boundaries.");
+        throw new \RuntimeException("Security: Access to path [{$path}] is restricted. It must be within allowed project boundaries.");
+    }
+
+    /**
+     * Resolve symlinks through the nearest existing ancestor, keeping the segments that
+     * do not exist yet so new files can still be created. A dangling symlink resolves to
+     * null, since writing through it would land wherever it points.
+     */
+    private function resolveRealPath(string $path): ?string
+    {
+        $missing = [];
+        $current = $path;
+
+        while (($real = realpath($current)) === false) {
+            if (is_link($current)) {
+                return null;
+            }
+
+            $parent = dirname($current);
+
+            if ($parent === $current) {
+                return $path;
+            }
+
+            array_unshift($missing, basename($current));
+            $current = $parent;
         }
 
-        return $normalised;
+        return $missing === []
+            ? $real
+            : rtrim($real, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, $missing);
+    }
+
+    /**
+     * Check whether a resolved path is the allowed directory itself or inside it.
+     */
+    private function isWithin(string $path, string $directory): bool
+    {
+        return $path === $directory
+            || str_starts_with($path, rtrim($directory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR);
     }
 
     /**

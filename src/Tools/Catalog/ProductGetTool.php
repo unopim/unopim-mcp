@@ -29,14 +29,16 @@ class ProductGetTool extends BaseMcpTool
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
-            'identifier' => ['required', 'string'],
+            'identifier' => ['required', is_int($request->get('identifier')) ? 'integer' : 'string'],
         ]);
 
-        $identifier = $validated['identifier'];
+        $identifier = (string) $validated['identifier'];
 
-        $product = ctype_digit($identifier) ? $this->productRepository->find((int) $identifier) : null;
+        $product = $this->productRepository->findOneByField('sku', $identifier);
 
-        $product ??= $this->productRepository->findOneByField('sku', $identifier);
+        if (! $product && ctype_digit($identifier)) {
+            $product = $this->productRepository->find((int) $identifier);
+        }
 
         if (! $product) {
             return Response::error("Product with identifier '{$identifier}' not found.");
@@ -75,8 +77,9 @@ class ProductGetTool extends BaseMcpTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'identifier' => $schema->string()
-                ->description('The product ID or SKU.'),
+            'identifier' => $this->anyOfSchema($schema, ['string', 'integer'])
+                ->description('The product SKU or numeric ID. A SKU match wins over an ID match.')
+                ->required(),
         ];
     }
 }

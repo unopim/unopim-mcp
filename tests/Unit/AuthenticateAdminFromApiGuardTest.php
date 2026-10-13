@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Webkul\MCP\Http\Middleware\AuthenticateAdminFromApiGuard;
@@ -53,4 +54,16 @@ it('does not overwrite an already authenticated admin', function () {
     (new AuthenticateAdminFromApiGuard)->handle($request, fn ($req) => response('ok'));
 
     expect(Auth::guard('admin')->id())->toBe($sessionAdmin->id);
+});
+
+it('refuses a token that belongs to a disabled admin', function () {
+    $admin = Admin::factory()->create(['status' => 0]);
+
+    $request = Request::create('/mcp/unopim', 'POST');
+    $request->setUserResolver(fn ($guard = null) => $guard === 'api' ? $admin : null);
+
+    expect(fn () => (new AuthenticateAdminFromApiGuard)->handle($request, fn ($req) => response('ok')))
+        ->toThrow(AuthenticationException::class);
+
+    expect(Auth::guard('admin')->check())->toBeFalse();
 });

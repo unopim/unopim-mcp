@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\File;
+use Symfony\Component\Process\Process;
 use Webkul\MCP\DevTools\FileManager;
 use Webkul\MCP\DevTools\TestGenerator;
 
@@ -47,9 +48,9 @@ it('generates a test file for a simple class name', function () {
     expect(File::exists(base_path($result)))->toBeTrue();
 
     $content = File::get(base_path($result));
-    expect($content)->toContain('class MyClassTest extends TestCase');
-    expect($content)->toContain('namespace Webkul\\TestPkg\\Tests\\Unit');
-    expect($content)->toContain('function test_example');
+    expect($content)->toContain('use Webkul\\TestPkg\\MyClass;')
+        ->toContain("it('")
+        ->not->toContain('class MyClassTest');
 });
 
 it('generates a test file for a nested class name', function () {
@@ -59,8 +60,8 @@ it('generates a test file for a nested class name', function () {
     expect(File::exists(base_path($result)))->toBeTrue();
 
     $content = File::get(base_path($result));
-    expect($content)->toContain('namespace Webkul\\TestPkg\\Tests\\Unit\\Services');
-    expect($content)->toContain('class PaymentServiceTest extends TestCase');
+    expect($content)->toContain('use Webkul\\TestPkg\\Services\\PaymentService;')
+        ->not->toContain('class PaymentServiceTest');
 });
 
 it('throws exception if test file already exists', function () {
@@ -71,3 +72,39 @@ it('throws exception if test file already exists', function () {
     expect(fn () => $this->generator->generate('Webkul/TestPkg', 'MyClass'))
         ->toThrow(RuntimeException::class, 'already exists');
 });
+
+it('places a bare package name under packages/Webkul', function () {
+    $result = $this->generator->generate('TestPkg', 'MyClass');
+
+    expect($result)->toBe('packages/Webkul/TestPkg/tests/Unit/MyClassTest.php')
+        ->and(File::exists(base_path($result)))->toBeTrue();
+});
+
+it('accepts a fully qualified class name with backslashes', function () {
+    $result = $this->generator->generate('Webkul/TestPkg', 'Webkul\\TestPkg\\Services\\PaymentService');
+
+    expect($result)->toBe('packages/Webkul/TestPkg/tests/Unit/Services/PaymentServiceTest.php');
+
+    $content = File::get(base_path($result));
+
+    expect($content)->toContain('use Webkul\\TestPkg\\Services\\PaymentService;')
+        ->not->toContain('class Webkul');
+});
+
+it('generates a pest test file that php can parse', function () {
+    $result = $this->generator->generate('TestPkg', 'Services\\PaymentService');
+
+    $process = new Process([PHP_BINARY, '-l', base_path($result)]);
+    $process->run();
+
+    expect($process->isSuccessful())->toBeTrue();
+});
+
+it('rejects package and class names that would leave the package directory', function (string $package, string $class) {
+    expect(fn () => $this->generator->generate($package, $class))
+        ->toThrow(InvalidArgumentException::class);
+})->with([
+    ['../../Evil', 'MyClass'],
+    ['TestPkg', '../../../Evil'],
+    ['TestPkg', 'My-Class'],
+]);

@@ -17,7 +17,7 @@ class RunSkillTool extends BaseMcpTool
     /**
      * The tool's description.
      */
-    protected string $description = 'Execute a predefined skill with the provided input.';
+    protected string $description = 'Load a skill from .ai/skills by name or tool key and return its instructions together with the provided input.';
 
     /**
      * The tool's name.
@@ -35,10 +35,14 @@ class RunSkillTool extends BaseMcpTool
             'input' => ['nullable', 'array'],
         ]);
 
-        $result = $this->skillExecutor->executeSkill(
-            $validated['skill_name'],
-            $validated['input'] ?? []
-        );
+        try {
+            $result = $this->skillExecutor->executeSkill(
+                $validated['skill_name'],
+                $validated['input'] ?? []
+            );
+        } catch (\RuntimeException $e) {
+            return Response::error($e->getMessage());
+        }
 
         return Response::json([
             'success' => true,

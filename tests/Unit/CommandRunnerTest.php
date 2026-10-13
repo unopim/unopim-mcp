@@ -87,3 +87,23 @@ it('blocks python commands', function () {
     expect(fn () => $this->runner->run('python -c "import os"'))
         ->toThrow(RuntimeException::class, 'Command not allowed');
 });
+
+it('blocks tinker because it evaluates arbitrary php', function (string $command) {
+    expect(fn () => $this->runner->run($command))
+        ->toThrow(RuntimeException::class, 'tinker');
+})->with([
+    'php artisan tinker --execute="echo 1;"',
+    'php artisan tinker',
+    'php artisan tink',
+    'php artisan TINKER',
+    'php artisan --env testing tinker',
+    'php artisan --no-interaction tinker',
+]);
+
+it('blocks composer commands that run arbitrary binaries', function (string $command) {
+    expect(fn () => $this->runner->run($command))
+        ->toThrow(RuntimeException::class, 'exec');
+})->with([
+    'composer exec psysh',
+    'composer --working-dir . exec psysh',
+]);

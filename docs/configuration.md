@@ -54,6 +54,16 @@ return [
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ],
     ],
+
+    // Caps and throttle for OAuth dynamic client registration (POST oauth/register).
+    'oauth' => [
+        'registration' => [
+            'max_body_bytes'          => env('MCP_OAUTH_REGISTRATION_MAX_BODY_BYTES', 16384),
+            'max_redirect_uris'       => env('MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URIS', 10),
+            'max_redirect_uri_length' => env('MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URI_LENGTH', 2048),
+            'rate_limit'              => env('MCP_OAUTH_REGISTRATION_RATE_LIMIT', 10),
+        ],
+    ],
 ];
 ```
 
@@ -66,12 +76,12 @@ return [
 
 ### `rate_limit` — `MCP_RATE_LIMIT`
 - **Default**: `60` (requests per minute)
-- Enforced by `PimCallTool` using Laravel's `RateLimiter` with the key `mcp-tool:{toolName}:{ip|cli}`. Counts are per tool, per caller — not per server-wide.
+- Enforced by `PimCallTool` using Laravel's `RateLimiter` with the key `mcp-tool:{toolName}:user:{id}`, or `mcp-tool:{toolName}:ip:{ip}` (`cli` over stdio) when no user is authenticated. Counts are per tool, per caller — not per server-wide.
 - Raise it for noisy AI agents; lower it to protect a slow database.
 
 ### `allowed_paths`
 - **Default**: `[base_path(), sys_get_temp_dir()]`
-- The `FileManager` (and every dev tool that touches disk) jails reads/writes inside this list. Paths are normalized first, so `..` traversal is rejected before the comparison runs.
+- The `FileManager` (and every dev tool that touches disk) jails reads/writes inside this list. Paths are normalized and symlinks resolved first, and an entry only matches a whole directory, so `..` traversal, a sibling such as `/var/www/app-evil`, and symlinks pointing outside are rejected.
 - Add a path explicitly if you need the AI to write outside the project root (e.g. a separate storage volume). Anything you add becomes reachable, so think before you append.
 
 ### `audit_logging` — `MCP_AUDIT_LOGGING`
@@ -101,6 +111,17 @@ return [
 - `allowed_extensions` — file extensions accepted on upload.
 - `allowed_mimes` — MIME types accepted on upload.
 
+### `oauth.registration`
+- Guards the dynamic client registration endpoint (`POST oauth/register`) that `laravel/mcp` registers without limits. ChatGPT and Claude register one public client with a single redirect URI, well inside these defaults.
+- `max_body_bytes` — `MCP_OAUTH_REGISTRATION_MAX_BODY_BYTES`, default `16384`. Larger request bodies are rejected with `400 invalid_client_metadata`.
+- `max_redirect_uris` — `MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URIS`, default `10`. More redirect URIs are rejected with `400 invalid_client_metadata`.
+- `max_redirect_uri_length` — `MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URI_LENGTH`, default `2048` characters per redirect URI; longer ones are rejected with `400 invalid_client_metadata`.
+- `rate_limit` — `MCP_OAUTH_REGISTRATION_RATE_LIMIT`, default `10` registrations per minute per client IP (limiter `mcp-oauth-register`). Excess requests get `429 too_many_requests` with a `Retry-After` header.
+- Behind a reverse proxy, configure Laravel's trusted proxies so the limit is counted per real client IP rather than per proxy.
+
+### PKCE (not configurable)
+- The OAuth authorize endpoint only accepts `code_challenge_method=S256`, as OAuth 2.1 and the MCP authorization spec require. A `code_challenge` sent with `plain`, with any other method, or with no method (which would otherwise default to `plain`) gets `400 invalid_request`. Public clients that send no `code_challenge` are still rejected by Passport.
+
 ## Environment variables at a glance
 
 | Env var | Config key | Default |
@@ -111,6 +132,10 @@ return [
 | `MCP_SKILLS_PATH` | `skills_path` | `base_path('.ai/skills')` |
 | `MCP_ENABLE_CACHE` | `enable_cache` | `true` |
 | `MCP_CACHE_TTL` | `cache_ttl` | `3600` |
+| `MCP_OAUTH_REGISTRATION_MAX_BODY_BYTES` | `oauth.registration.max_body_bytes` | `16384` |
+| `MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URIS` | `oauth.registration.max_redirect_uris` | `10` |
+| `MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URI_LENGTH` | `oauth.registration.max_redirect_uri_length` | `2048` |
+| `MCP_OAUTH_REGISTRATION_RATE_LIMIT` | `oauth.registration.rate_limit` | `10` |
 
 ## Production checklist
 

@@ -66,15 +66,11 @@ class AttributeGroupSearchTool extends BaseMcpTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'filters' => $schema->array()
-                ->description('List of filters: [{field, operator, value}].')
-                ->items(
-                    $schema->object([
-                        'field' => $schema->string()->description('The field to filter by (e.g., code, name).'),
-                        'operator' => $schema->string()->description('The comparison operator.'),
-                        'value' => $schema->string()->description('The value to compare against. For IN and NOT IN, pass a comma-separated list ("a,b") or an array.'),
-                    ])
-                ),
+            'filters' => $this->filtersSchema(
+                $schema,
+                'List of filters: [{field, operator, value}].',
+                'The field to filter by (e.g. id, code, name).',
+            ),
             'limit' => $schema->integer()
                 ->description('Number of results per page.')
                 ->default(25),

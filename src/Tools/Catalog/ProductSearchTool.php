@@ -56,7 +56,7 @@ class ProductSearchTool extends BaseMcpTool
                 'id' => $p->id,
                 'sku' => $p->sku,
                 'type' => $p->type,
-                'status' => $p->status,
+                'status' => (bool) $p->status,
                 'attribute_family_id' => $p->attribute_family_id,
             ])->values()->all(),
         ]);
@@ -68,15 +68,11 @@ class ProductSearchTool extends BaseMcpTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'filters' => $schema->array()
-                ->description('List of filters: [{field, operator, value}]. Supported operators: =, !=, IN, NOT IN, CONTAINS, STARTS WITH, ENDS WITH, >, <.')
-                ->items(
-                    $schema->object([
-                        'field' => $schema->string()->description('The field to filter by (e.g., sku, status).'),
-                        'operator' => $schema->string()->description('The comparison operator.'),
-                        'value' => $schema->string()->description('The value to compare against. For IN and NOT IN, pass a comma-separated list ("a,b") or an array.'),
-                    ])
-                ),
+            'filters' => $this->filtersSchema(
+                $schema,
+                'List of filters: [{field, operator, value}]. Call get_catalog_schema for the fields that can be filtered.',
+                'A product column (id, sku, type, status, attribute_family_id, parent_id, created_at, updated_at) or a JSON path into values, e.g. values->common->color.',
+            ),
             'limit' => $schema->integer()
                 ->description('Number of results per page (max 100).')
                 ->default(25),

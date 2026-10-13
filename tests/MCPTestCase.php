@@ -3,6 +3,8 @@
 namespace Webkul\MCP\Tests;
 
 use Illuminate\Support\Facades\Config;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Server\Tool;
 use Tests\TestCase;
 
 class MCPTestCase extends TestCase
@@ -28,5 +30,18 @@ class MCPTestCase extends TestCase
                 $channel->code => [$channel->locales->first()->code => ['name' => $name]],
             ],
         ];
+    }
+
+    /**
+     * Run a tool directly and decode its JSON payload.
+     *
+     * @param  class-string<Tool>  $tool
+     * @return array<string, mixed>
+     */
+    protected function toolPayload(string $tool, array $arguments = []): array
+    {
+        $response = app($tool)->handle(new Request($arguments));
+
+        return json_decode((string) $response->content(), true) ?? [];
     }
 }

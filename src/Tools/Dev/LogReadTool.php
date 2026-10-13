@@ -30,15 +30,12 @@ class LogReadTool extends BaseMcpTool
     {
         $validated = $request->validate([
             'lines' => ['nullable', 'integer', 'min:1', "max:{$this->maxLines}"],
-            'type' => ['nullable', 'string', 'in:laravel,mcp'],
+            'type' => ['nullable', 'string', 'in:laravel'],
         ]);
 
         $lines = (int) ($validated['lines'] ?? 50);
-        $type = $validated['type'] ?? 'laravel';
 
-        $logPath = ($type === 'mcp')
-            ? storage_path('logs/mcp.log')
-            : storage_path('logs/laravel.log');
+        $logPath = storage_path('logs/laravel.log');
 
         if (! file_exists($logPath)) {
             return Response::error("Log file not found at [{$logPath}].");
@@ -84,8 +81,8 @@ class LogReadTool extends BaseMcpTool
                 ->description("Number of lines to read (max {$this->maxLines}).")
                 ->default(50),
             'type' => $schema->string()
-                ->description('Type of log: laravel (default) or mcp.')
-                ->enum(['laravel', 'mcp']),
+                ->description('Type of log: laravel (the default). MCP audit entries go to the default log channel, prefixed "MCP Audit Log".')
+                ->enum(['laravel']),
         ];
     }
 }

@@ -22,6 +22,11 @@ class DatabaseSchemaTool extends BaseMcpTool
      */
     public string $name = 'get_database_schema';
 
+    /**
+     * List only the application's own schema. MySQL and MariaDB report the configured
+     * database, PostgreSQL the search path and SQLite `main`; a driver without a schema
+     * listing returns null, which lists every table the connection can see.
+     */
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
@@ -43,8 +48,7 @@ class DatabaseSchemaTool extends BaseMcpTool
             ]);
         }
 
-        // List all tables
-        $tables = Schema::getTables();
+        $tables = Schema::getTables(Schema::getCurrentSchemaListing());
 
         return Response::json([
             'tables' => $tables,

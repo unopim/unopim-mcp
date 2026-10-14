@@ -19,7 +19,6 @@ use Webkul\Attribute\Services\AttributeService;
 use Webkul\Core\Repositories\CurrencyRepository;
 use Webkul\Core\Rules\Sku;
 use Webkul\MCP\Tools\BaseMcpTool;
-use Webkul\Product\Enums\ProductType;
 use Webkul\Product\Models\Product;
 use Webkul\Product\Repositories\ProductRepository;
 use Webkul\Product\Type\AbstractType;
@@ -29,6 +28,11 @@ use Webkul\Product\Validator\ProductValuesValidator;
 #[IsIdempotent]
 class ProductUpsertTool extends BaseMcpTool
 {
+    /**
+     * The configurable product type key; a literal because the ProductType enum only exists from UnoPim 3.1.3.
+     */
+    protected const CONFIGURABLE = 'configurable';
+
     /**
      * The tool's description.
      */
@@ -127,7 +131,7 @@ class ProductUpsertTool extends BaseMcpTool
                 'type' => $productData['type'],
                 'attribute_family_id' => $productData['attribute_family_id'],
                 'sku' => $sku,
-                'super_attributes' => $productData['type'] === ProductType::Configurable->value
+                'super_attributes' => $productData['type'] === self::CONFIGURABLE
                     ? $this->superAttributes($productData, $index)
                     : null,
             ], fn (mixed $value): bool => $value !== null));
@@ -341,7 +345,7 @@ class ProductUpsertTool extends BaseMcpTool
     {
         $parent = $this->productRepository->findOneByField('sku', $parentSku);
 
-        if (! $parent || $parent->type !== ProductType::Configurable->value) {
+        if (! $parent || $parent->type !== self::CONFIGURABLE) {
             $this->fail("products.{$index}.parent_sku", 'parent-not-found', ['sku' => $parentSku]);
         }
 

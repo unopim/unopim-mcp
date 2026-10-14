@@ -5,6 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-10-13
+
+### Security
+- Upsert tools check `.create` for records that do not exist yet and `.edit` for records that do, instead of `.create` for everything. A create-only role can no longer update records.
+- `upsert_settings` requires `settings.channels.create|edit` or `settings.locales.create|edit` instead of the view-level `settings` permission.
+- Tokens issued to a disabled admin are refused with a 401 and a `WWW-Authenticate` challenge.
+- `run_database_query` accepts a single SELECT, WITH, SHOW, EXPLAIN or DESCRIBE statement, rejects `INTO`, locking clauses and sleep/file/dblink functions, and on MySQL, MariaDB and PostgreSQL runs in a read-only transaction on a dedicated connection that is always rolled back.
+- `get_database_schema` lists only the application's own schema, not every database on the server.
+- `dev_tools` file operations resolve symlinks and match allowed paths by whole directory, so sibling directories, symlinks pointing outside and dangling symlinks are refused.
+- `dev_tools` `run_command` blocks `php artisan tinker` (and its abbreviations), `composer exec` and `composer global`.
+- `generate_plugin` and `generate_test` reject names that would write outside `packages/`.
+- The `.create`/`.edit` check reads each upsert tool's own item list (`products`, `categories`, `attributes`, `items`). `upsert_products`, `upsert_categories` and `upsert_attributes` used to fall back to `.create`, so a create-only role could still update existing records.
+- `run_database_query` lexes comments and literals per dialect (MySQL `-- ` and `#`, PostgreSQL dollar quotes and `E''` strings), checks with and without backslash escapes, keeps quoted function names visible, and checks `SHOW`, `DESC` and `DESCRIBE` too. Queries are capped at 30 seconds on MySQL (`max_execution_time`) and MariaDB (`max_statement_time`), as on PostgreSQL.
+- `upsert_families`, `upsert_attribute_groups`, `upsert_currencies` and `dev_tools` no longer return raw database or system exception messages. Unexpected errors are logged and reported with a reference.
+- The OAuth authorize endpoint rejects a `code_challenge` sent with any method but `S256`, including a missing method (which League treats as `plain`), with `400 invalid_request`, as OAuth 2.1 and the MCP authorization spec require.
+- Dynamic client registration (`POST oauth/register`) caps the request body (16 KB), the number of redirect URIs (10) and each redirect URI's length (2048 characters), answering `400 invalid_client_metadata`, and is rate limited to 10 registrations per minute per IP (`429`). All limits are configurable under `mcp.oauth.registration`.
+
+### Fixed
+- `upsert_currencies` refuses to disable a currency that a channel still uses, as the admin panel does, naming the currency and writing nothing from the batch.
+- The OAuth authorization server metadata now advertises `token_endpoint_auth_methods_supported: ["none"]`, which ChatGPT requires before it connects. `laravel/mcp` does not publish the field; a value it publishes in a later release is kept.
+- `upsert_families` no longer deletes a family's attribute groups and attribute assignments when an existing family is updated; only the name changes.
+- `upsert_attributes` updates options on an existing attribute by code instead of crashing, rejects changing an existing attribute's `type`, and validates `type` against UnoPim's attribute types and codes with UnoPim's code rule.
+- `upsert_categories` stores `name` as the category name for the requested locale, rejects a missing parent or a parent inside the category's own subtree, and no longer advertises an unused `status` field.
+- `upsert_products` accepts only product types registered in UnoPim, requires an existing family, validates SKUs with UnoPim's SKU rule, creates configurable products with `super_attributes`, creates variants under a configurable parent with `parent_sku`, and writes `status`.
+- `upsert_products` rejects changing a variant's variant attribute values to a combination a sibling variant already has.
+- `upsert_products` errors name the failing item: keys read `products.{index}.values.…` and the message and payload carry its index and SKU. The batch still rolls back as a whole.
+- `upsert_products` rejects prices in a currency that is not active, and prices sent as a list instead of a currency-to-amount object.
+- `upsert_products` documents the `values` shape (sections, scopes, value formats and an example), and points `categories` or `associations` sent inside an attribute section, or an attribute sent in the wrong section, to where it belongs. A missing `type` or `attribute_family_id` on create is reported as a translated validation error.
+- Search tools reject a filter value that is not a date for a date or timestamp column, or not a number for a numeric column, instead of silently returning no rows.
+- `search_attribute_options` pages reliably when options share a sort order, and filtering by `label` works.
+- Search tools return a clear validation error for an unknown filter field or operator, a list passed to a single-value operator, or an invalid cursor, instead of a generic error or a silent restart at page one. Filter fields are checked against the table's columns before they reach SQL.
+- Search tools can filter on translated fields such as `name` and `label`.
+- `get_catalog_schema` advertises only filter fields that `search_products` accepts, with product attribute values given as JSON paths.
+- `get_product` resolves a numeric identifier by SKU before ID, accepts an integer identifier, and marks it required.
+- Search tool schemas declare `filters[].value` as a string, number, boolean or list.
+- `search_products` reports `status` as a boolean, consistent with `get_product`.
+- `upsert_settings` saves every submitted field: locale `status`, new channels with their root category, name, locales and currencies, and partial channel updates that keep existing locales and currencies. Disabling a locale in use is rejected, as in the admin panel.
+- Dynamic skill tools always get a valid MCP tool name (`^[a-zA-Z0-9_-]{1,64}$`).
+- `generate_test` writes to `packages/Webkul/{package}/tests/Unit`, accepts fully qualified class names and generates a Pest test.
+- `run_skill` returns the skill's instructions and input, and an error for an unknown skill instead of always reporting success.
+- The permission denial message reads "Forbidden: you do not have permission to run [tool]." and is translated.
+
+### Added
+- `upsert_families` accepts `attribute_groups` (`[{code, attributes}]`) to add attribute groups and attributes to a family. It only adds, never removes, so a family built over MCP can hold the attributes its products need.
+
+### Changed
+- Rate limiting is counted per tool per authenticated user, falling back to the client IP.
+- `read_logs` no longer accepts `type: mcp`; that file was never written. MCP audit entries are in the default log channel.
+
+### Upgrade notes
+- Roles that update records through MCP now need the `.edit` permission (e.g. `catalog.products.edit`); a batch that both creates and updates needs both.
+- `upsert_settings` needs `settings.channels.*` or `settings.locales.*`; new channels must send `root_category_id`, `locales` and `currencies`.
+- A package symlinked into `packages/` from elsewhere is outside `mcp.allowed_paths`; add its real path if `dev_tools` should edit it.
+
 ## [1.0.3] - 2026-10-12
 
 ### Security

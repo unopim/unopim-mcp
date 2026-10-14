@@ -20,14 +20,14 @@ The MCP HTTP route is registered under the `api` middleware group and should **n
 
 ## Tool Execution
 
-### `Forbidden: Unauthorized access to executed [tool]`
+### `Forbidden: you do not have permission to run [tool].`
 Coming from `PimCallTool::isAuthorized()`. Either:
-- Grant the caller the mapped permission (see [Tool Reference → Permission Mapping](tool-reference.md#permission-mapping)).
+- Grant the caller the mapped permission (see [Tool Reference → Permission Mapping](tool-reference.md#permission-mapping)). Upserts need `.create` for new records and `.edit` for existing ones.
 - Developer tools and dynamic skills need a role with full access, and over HTTP also `MCP_REMOTE_DEVELOPER_TOOLS=true`.
 - Use the stdio transport for local development — it bypasses ACL unless `APP_ENV=testing`.
 
 ### `Rate limit exceeded. Please slow down your requests.`
-Tripped by `RateLimiter` in `PimCallTool`. Raise `MCP_RATE_LIMIT` (default `60` per minute per tool per IP) or back off the caller. The key format is `mcp-tool:{toolName}:{ip|cli}`.
+Tripped by `RateLimiter` in `PimCallTool`. Raise `MCP_RATE_LIMIT` (default `60` per minute per tool per user) or back off the caller. The key format is `mcp-tool:{toolName}:user:{id}`, falling back to `mcp-tool:{toolName}:ip:{ip}` (or `cli`) when no user is authenticated.
 
 ### `An unexpected error occurred (Ref: XXXX)`
 `BaseMcpTool::handle()` logs the full exception under that reference and returns a sanitized error. Grep `storage/logs/laravel.log` for the ref:
@@ -63,10 +63,10 @@ If a tool wraps writes in `DB::beginTransaction()` and returns early without `DB
 ## Dev Tools
 
 ### `run_command` refuses a command
-`CommandRunner` whitelists base commands (`php artisan`, `composer`) and blocks shell operators (`;`, `&`, `|`, backticks, `$()`, `<`, `>`). Run complex pipelines manually, or extend `CommandRunner` and re-bind it in a custom service provider.
+`CommandRunner` whitelists base commands (`php artisan`, `composer`) and blocks shell operators (`;`, `&`, `|`, backticks, `$()`, `<`, `>`) and commands that run arbitrary code (`tinker` and its abbreviations, `composer exec`, `composer global`). Run complex pipelines manually, or extend `CommandRunner` and re-bind it in a custom service provider.
 
 ### `create_file` / `read_file` refuses a path
-`FileManager` jails every operation inside `config('mcp.allowed_paths')`. To allow writes outside `base_path()` (e.g. a separate storage volume), append the path to `allowed_paths` — but remember that anything there is now reachable by the AI.
+`FileManager` jails every operation inside `config('mcp.allowed_paths')`, after resolving symlinks — a symlink inside the project that points elsewhere, such as a package symlinked from another checkout, is outside. To allow writes outside `base_path()` (e.g. a separate storage volume), append the path to `allowed_paths` — but remember that anything there is now reachable by the AI.
 
 ---
 

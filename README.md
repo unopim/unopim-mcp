@@ -48,7 +48,7 @@ composer require unopim/mcp
 php artisan mcp:install
 ```
 
-`mcp:install` sets up Passport if needed, publishes `config/mcp.php` and clears caches.
+`mcp:install` runs `passport:install` if the OAuth tables are missing, publishes `config/mcp.php` and clears caches.
 
 Check it works — this opens the MCP Inspector in your browser, where you can call every tool by hand:
 
@@ -151,7 +151,7 @@ claude mcp add unopim -- php artisan mcp:start unopim-dev
 **One-time server setup**
 
 1. Serve UnoPim over **HTTPS** at a public address, with `APP_URL` set to it.
-2. Generate Passport keys if you haven't yet: `php artisan passport:keys`
+2. Make sure Passport keys exist. `unopim:install` creates them, so only run `php artisan passport:keys` on an install that has none — it refuses to overwrite existing keys.
 3. **Nginx only:** let `/.well-known/` through. The stock UnoPim Docker `nginx.conf` blocks dot paths, so OAuth discovery answers `403`. Add this **above** the `location ~ /\.` rule and reload Nginx:
 
    ```nginx
@@ -214,11 +214,11 @@ Something not connecting? See [Troubleshooting](docs/troubleshooting.md).
 | **Categories** | `search_categories`, `upsert_categories` | `catalog.categories` |
 | **Attributes** | `search_attributes`, `upsert_attributes`, `search_attribute_options`, `search_attribute_groups`, `upsert_attribute_groups`, `search_families`, `upsert_families` | `catalog.attributes`, `catalog.attribute_groups`, `catalog.families` |
 | **Schema** | `get_catalog_schema` — the fields and filters each entity supports | `catalog` |
-| **Settings** | `search_settings`, `upsert_settings` (channels and locales), `search_currencies`, `upsert_currencies` | `settings`, `settings.currencies` |
+| **Settings** | `search_settings`, `upsert_settings` (channels and locales), `search_currencies`, `upsert_currencies` | `settings`, `settings.channels`, `settings.locales`, `settings.currencies` |
 | **Imports & exports** | `search_jobs`, `get_job_execution` | `data_transfer` |
 | **Developer** | `dev_tools` (files, Artisan/Composer, plugin and test scaffolding), `run_skill`, `get_app_info`, `get_database_schema`, `run_database_query` (read-only), `read_logs` | Full access role |
 
-Catalog and currency writes need the matching `.create` permission, for example `catalog.products.create`. The [Tool Reference](docs/tool-reference.md#permission-mapping) lists each one.
+Upserts need `.create` to add a record and `.edit` to change an existing one, for example `catalog.products.create` and `catalog.products.edit`; a batch that does both needs both. The [Tool Reference](docs/tool-reference.md#permission-mapping) lists each one.
 
 - **Search** tools filter with `=`, `!=`, `IN`, `NOT IN`, `CONTAINS`, `STARTS WITH`, `ENDS WITH`, `>`, `<`, and page with a cursor (up to 100 per page).
 - **Upsert** tools create or update up to 50 records per call in one transaction — all saved, or none.
@@ -228,11 +228,12 @@ Catalog and currency writes need the matching `.create` permission, for example 
 
 ## Security
 
-- **Remote access needs a UnoPim login**, and every tool checks the admin's role permissions.
+- **Remote access needs a UnoPim login**, and every tool checks the admin's role permissions. Tokens of a disabled admin are refused.
 - **Developer tools stay local by default.** Over HTTP they are only served when `MCP_REMOTE_DEVELOPER_TOOLS=true`, and then only to full access roles.
 - **The local stdio server has full access**, the same as anyone who can run `php artisan` on that machine.
-- File tools are confined to `allowed_paths`; command tools only run `php artisan` and `composer`, with shell operators blocked.
-- Every tool call is rate limited (60 per minute per tool by default), and every write is logged with the user, IP and arguments.
+- File tools are confined to `allowed_paths`, with symlinks resolved; command tools only run `php artisan` and `composer`, with shell operators, `tinker` and `composer exec` blocked.
+- `run_database_query` accepts one read statement and runs it in a read-only transaction on MySQL, MariaDB and PostgreSQL.
+- Every tool call is rate limited (60 per minute per tool and user by default), and every write is logged with the user, IP and arguments.
 
 Found a vulnerability? Please report it privately — see [SECURITY.md](SECURITY.md).
 
@@ -246,7 +247,7 @@ The defaults suit most installs. Override them in `.env`:
 |---|---|---|
 | `MCP_API_AUTH` | `true` | Require OAuth on the HTTP endpoint. Turn off only for local testing. |
 | `MCP_REMOTE_DEVELOPER_TOOLS` | `false` | Serve developer tools and skills over HTTP. |
-| `MCP_RATE_LIMIT` | `60` | Calls per minute, per tool, per client. |
+| `MCP_RATE_LIMIT` | `60` | Calls per minute, per tool, per user (per IP for unauthenticated calls). |
 | `MCP_AUDIT_LOGGING` | `true` | Log every write tool call. |
 | `MCP_SKILLS_PATH` | `.ai/skills` | Where skills are loaded from. |
 

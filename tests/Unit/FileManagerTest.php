@@ -104,3 +104,55 @@ it('handles relative paths correctly by prepending base_path', function () {
 
     File::delete(base_path($path));
 });
+
+it('blocks a sibling directory whose name starts with the project directory name', function () {
+    $sibling = base_path().'-mcp-evil';
+
+    expect(fn () => $this->manager->create('../'.basename($sibling).'/x.txt', 'escaped'))
+        ->toThrow(RuntimeException::class, 'Security');
+
+    expect(File::exists($sibling.'/x.txt'))->toBeFalse();
+
+    if (is_dir($sibling)) {
+        File::deleteDirectory($sibling);
+    }
+});
+
+it('blocks a symlink inside the project that points outside it', function () {
+    $outside = sys_get_temp_dir().'/mcp_fm_outside_'.uniqid();
+    $link = base_path('storage/mcp_fm_test_link');
+
+    config(['mcp.allowed_paths' => [base_path()]]);
+    File::ensureDirectoryExists($outside);
+    @unlink($link);
+    symlink($outside, $link);
+
+    try {
+        expect(fn () => $this->manager->create('storage/mcp_fm_test_link/x.txt', 'escaped'))
+            ->toThrow(RuntimeException::class, 'Security');
+
+        expect(File::exists($outside.'/x.txt'))->toBeFalse();
+    } finally {
+        @unlink($link);
+        File::deleteDirectory($outside);
+    }
+});
+
+it('blocks writing through a dangling symlink', function () {
+    $target = sys_get_temp_dir().'/mcp_fm_dangling_'.uniqid().'.txt';
+    $link = base_path('storage/mcp_fm_test_dangling');
+
+    config(['mcp.allowed_paths' => [base_path()]]);
+    @unlink($link);
+    symlink($target, $link);
+
+    try {
+        expect(fn () => $this->manager->create('storage/mcp_fm_test_dangling', 'escaped'))
+            ->toThrow(RuntimeException::class, 'Security');
+
+        expect(file_exists($target))->toBeFalse();
+    } finally {
+        @unlink($link);
+        @unlink($target);
+    }
+});

@@ -15,6 +15,26 @@ class CommandRunner
     ];
 
     /**
+     * Commands that evaluate arbitrary code, keyed by the tool that runs them.
+     *
+     * @var array<string, list<string>>
+     */
+    protected array $blockedCommands = [
+        'artisan' => ['tinker'],
+        'composer' => ['exec', 'global'],
+    ];
+
+    /**
+     * Global options that take their value as the next token, keyed by tool.
+     *
+     * @var array<string, list<string>>
+     */
+    protected array $optionsWithValues = [
+        'artisan' => ['--env'],
+        'composer' => ['--working-dir', '-d'],
+    ];
+
+    /**
      * Parse and run a command safely without invoking a shell.
      */
     public function run(string $command): string
@@ -66,6 +86,10 @@ class CommandRunner
             throw new \RuntimeException('Command not allowed: '.htmlspecialchars($tokens[0]));
         }
 
+        $tool = $tokens[0] === 'composer' ? 'composer' : 'artisan';
+
+        $this->ensureCommandIsNotBlocked($tool, array_slice($tokens, $tool === 'composer' ? 1 : 2));
+
         foreach ($tokens as $token) {
             // Even though array Process execution protects against shell operators,
             // we proactively block them as an additional sanitization measure.
@@ -73,5 +97,52 @@ class CommandRunner
                 throw new \RuntimeException('Dangerous characters detected in command arguments.');
             }
         }
+    }
+
+    /**
+     * Refuse commands that evaluate code, including the abbreviations Symfony Console
+     * resolves (`tink` runs `tinker`).
+     *
+     * @param  list<string>  $arguments
+     */
+    private function ensureCommandIsNotBlocked(string $tool, array $arguments): void
+    {
+        $name = $this->commandName($tool, $arguments);
+
+        foreach ($this->blockedCommands[$tool] as $blocked) {
+            $isAbbreviation = $name !== null && str_starts_with($blocked, $name);
+
+            if ($isAbbreviation || in_array($blocked, array_map('strtolower', $arguments), true)) {
+                throw new \RuntimeException(trans('mcp::app.dev.command-runner.blocked', ['command' => $blocked]));
+            }
+        }
+    }
+
+    /**
+     * The lower-cased command name: the first argument that is neither an option nor an option's value.
+     *
+     * @param  list<string>  $arguments
+     */
+    private function commandName(string $tool, array $arguments): ?string
+    {
+        $skipNext = false;
+
+        foreach ($arguments as $argument) {
+            if ($skipNext) {
+                $skipNext = false;
+
+                continue;
+            }
+
+            if (str_starts_with($argument, '-')) {
+                $skipNext = in_array($argument, $this->optionsWithValues[$tool], true);
+
+                continue;
+            }
+
+            return strtolower($argument);
+        }
+
+        return null;
     }
 }

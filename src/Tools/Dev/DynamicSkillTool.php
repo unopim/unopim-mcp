@@ -6,18 +6,34 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
+use Webkul\MCP\Services\SkillRenderer;
 use Webkul\MCP\Tools\BaseMcpTool;
 
 #[IsReadOnly]
 class DynamicSkillTool extends BaseMcpTool
 {
     public function __construct(
-        protected array $skillData
+        protected array $skillData,
+        protected SkillRenderer $renderer = new SkillRenderer,
     ) {}
 
+    /**
+     * The tool name. A skill name that is already a valid MCP tool name keeps its
+     * existing form; anything else falls back to the normalised `tool_key`, so the
+     * result always matches `^[a-zA-Z0-9_-]{1,64}$`.
+     */
     public function name(): string
     {
-        return 'execute_'.str_replace('-', '_', $this->skillData['name']);
+        $name = 'execute_'.str_replace('-', '_', (string) ($this->skillData['name'] ?? ''));
+
+        if ($name !== 'execute_' && preg_match('/^[a-zA-Z0-9_-]{1,64}$/', $name)) {
+            return $name;
+        }
+
+        $key = $this->skillData['tool_key'] ?? $this->skillData['name'] ?? '';
+        $key = trim((string) preg_replace('/[^a-z0-9]+/', '_', strtolower((string) $key)), '_');
+
+        return substr('execute_'.($key === '' ? 'skill' : $key), 0, 64);
     }
 
     public function description(): string
@@ -27,39 +43,12 @@ class DynamicSkillTool extends BaseMcpTool
 
     protected function execute(Request $request): Response
     {
-        $output = "# Skill: {$this->skillData['name']}\n\n";
-        $output .= "{$this->skillData['description']}\n\n";
-        $output .= "## Instruction Content\n\n";
-        $output .= $this->skillData['content'] ?? 'No content available.';
-
-        // Include any additional documentation files.
-        $additionalDocs = [];
-
-        if (! empty($this->skillData['files'])) {
-            $additionalDocs = array_filter(array_keys($this->skillData['files']), fn ($f) => str_ends_with($f, '.md'));
-        } elseif (isset($this->skillData['path'])) {
-            $dir = dirname($this->skillData['path']);
-            if (is_dir($dir)) {
-                $files = array_diff(scandir($dir), ['.', '..', 'SKILL.md']);
-                $additionalDocs = array_filter($files, fn ($f) => str_ends_with($f, '.md'));
-            }
-        }
-
-        if (! empty($additionalDocs)) {
-            $output .= "\n\n## Related Documentation\n";
-            foreach ($additionalDocs as $doc) {
-                $output .= "- {$doc}\n";
-            }
-            $output .= "\n*You can request content from these files if needed.*";
-        }
-
-        return Response::text($output);
+        return Response::text($this->renderer->render($this->skillData));
     }
 
     public function schema(JsonSchema $schema): array
     {
         $properties = [];
-        $required = [];
 
         foreach (($this->skillData['parameters']['properties'] ?? []) as $paramName => $paramData) {
             $type = strtolower($paramData['type'] ?? 'string');

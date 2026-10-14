@@ -36,14 +36,14 @@ class AttributeOptionSearchTool extends BaseMcpTool
             'cursor' => ['nullable', 'string'],
         ]);
 
-        $query = $this->optionRepository->getModel()->query();
+        $query = $this->optionRepository->getModel()->query()->with('translations');
 
         if (! empty($validated['filters'])) {
             $this->queryBuilder->applyFilters($query, $validated['filters']);
         }
 
         $paginator = $this->queryBuilder->paginate(
-            $query->orderBy('sort_order'),
+            $query->orderBy('sort_order')->orderBy('id'),
             (int) ($validated['limit'] ?? 25),
             $validated['cursor'] ?? null
         );
@@ -69,15 +69,11 @@ class AttributeOptionSearchTool extends BaseMcpTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'filters' => $schema->array()
-                ->description('List of filters: [{field, operator, value}]. Supported fields: attribute_id, code, label.')
-                ->items(
-                    $schema->object([
-                        'field' => $schema->string()->description('The field to filter by (e.g., attribute_id, code).'),
-                        'operator' => $schema->string()->description('The comparison operator (=, !=, IN, CONTAINS, etc.).'),
-                        'value' => $schema->string()->description('The value to compare against. For IN and NOT IN, pass a comma-separated list ("a,b") or an array.'),
-                    ])
-                ),
+            'filters' => $this->filtersSchema(
+                $schema,
+                'List of filters: [{field, operator, value}]. Supported fields: id, attribute_id, code, sort_order, label (matches a label in any locale).',
+                'The field to filter by (e.g. attribute_id, code, label).',
+            ),
             'limit' => $schema->integer()
                 ->description('Number of results per page (max 100).')
                 ->default(25),

@@ -2,7 +2,10 @@
 
 namespace Webkul\MCP\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Mcp\Facades\Mcp;
@@ -20,6 +23,9 @@ use Webkul\MCP\DevTools\CommandRunner;
 use Webkul\MCP\DevTools\FileManager;
 use Webkul\MCP\DevTools\PluginGenerator;
 use Webkul\MCP\DevTools\TestGenerator;
+use Webkul\MCP\Http\Middleware\AdvertiseTokenEndpointAuthMethods;
+use Webkul\MCP\Http\Middleware\LimitClientRegistration;
+use Webkul\MCP\Http\Middleware\RequireS256CodeChallenge;
 use Webkul\MCP\Servers\UnoPimAgentServer;
 use Webkul\MCP\Services\SkillExecutor;
 use Webkul\MCP\Services\SkillLoader;
@@ -69,7 +75,8 @@ class MCPServiceProvider extends ServiceProvider
                 $app->make(FileManagerInterface::class),
                 $app->make(CommandRunner::class),
                 $app->make(PluginGenerator::class),
-                $app->make(TestGenerator::class)
+                $app->make(TestGenerator::class),
+                $app->make(SkillLoader::class),
             );
         });
 
@@ -98,6 +105,12 @@ class MCPServiceProvider extends ServiceProvider
 
         Mcp::oauthRoutes();
 
+        $this->advertiseTokenEndpointAuthMethods();
+
+        $this->guardClientRegistration();
+
+        $this->requireS256CodeChallenge();
+
         $this->configurePassportViews();
 
         $this->prioritizeMcpTransportMiddleware();
@@ -112,6 +125,44 @@ class MCPServiceProvider extends ServiceProvider
                 PluginMakeCommand::class,
             ]);
         }
+    }
+
+    protected function advertiseTokenEndpointAuthMethods(): void
+    {
+        foreach (Route::getRoutes()->get('GET') as $route) {
+            if (str_starts_with($route->uri(), '.well-known/oauth-authorization-server')) {
+                $route->middleware(AdvertiseTokenEndpointAuthMethods::class);
+            }
+        }
+    }
+
+    /**
+     * Throttle and cap the dynamic client registration endpoint laravel/mcp registers unguarded.
+     */
+    protected function guardClientRegistration(): void
+    {
+        RateLimiter::for('mcp-oauth-register', fn (Request $request) => Limit::perMinute((int) config('mcp.oauth.registration.rate_limit', 10))
+            ->by($request->ip())
+            ->response(fn (Request $request, array $headers) => response()->json([
+                'error' => 'too_many_requests',
+                'error_description' => trans('mcp::app.oauth.registration.rate-limited'),
+            ], 429, $headers)));
+
+        foreach (Route::getRoutes()->get('POST') as $route) {
+            if ($route->uri() === 'oauth/register') {
+                $route->middleware(['throttle:mcp-oauth-register', LimitClientRegistration::class]);
+            }
+        }
+    }
+
+    /**
+     * Passport registers its routes from its own provider, so the authorize route is guarded once the app has booted.
+     */
+    protected function requireS256CodeChallenge(): void
+    {
+        $this->app->booted(function (): void {
+            Route::getRoutes()->getByName('passport.authorizations.authorize')?->middleware(RequireS256CodeChallenge::class);
+        });
     }
 
     protected function configurePassportViews(): void

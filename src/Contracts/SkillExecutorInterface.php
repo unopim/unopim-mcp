@@ -37,7 +37,9 @@ interface SkillExecutorInterface
     public function generateTest(string $packageName, string $className): string;
 
     /**
-     * Execute a skill from a directory.
+     * Return the instructions of the named skill together with the given input.
+     *
+     * @throws \RuntimeException when no skill matches the name.
      */
     public function executeSkill(string $skillName, array $args = []): string;
 }

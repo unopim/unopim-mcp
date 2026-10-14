@@ -52,7 +52,7 @@ class DevToolsTool extends BaseMcpTool
                 'success' => true,
                 'result' => $result,
             ]);
-        } catch (\Throwable $e) {
+        } catch (\RuntimeException|\InvalidArgumentException $e) {
             return Response::error($e->getMessage());
         }
     }

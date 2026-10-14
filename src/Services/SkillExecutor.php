@@ -14,7 +14,9 @@ class SkillExecutor implements SkillExecutorInterface
         protected FileManagerInterface $fileManager,
         protected CommandRunner $commandRunner,
         protected PluginGenerator $pluginGenerator,
-        protected TestGenerator $testGenerator
+        protected TestGenerator $testGenerator,
+        protected ?SkillLoader $skillLoader = null,
+        protected SkillRenderer $skillRenderer = new SkillRenderer,
     ) {}
 
     public function createFile(string $path, string $content): bool
@@ -47,10 +49,19 @@ class SkillExecutor implements SkillExecutorInterface
         return $this->testGenerator->generate($packageName, $className);
     }
 
+    /**
+     * Render a skill's instructions together with the given input.
+     *
+     * @throws \RuntimeException when no skill matches the name or tool key.
+     */
     public function executeSkill(string $skillName, array $args = []): string
     {
-        // This is a placeholder for dynamic skill execution logic if needed.
-        // Currently skills are loaded via SkillLoader and registered as tools.
-        return "Skill [{$skillName}] execution triggered with ".count($args).' arguments.';
+        $skill = ($this->skillLoader ?? app(SkillLoader::class))->find($skillName);
+
+        if ($skill === null) {
+            throw new \RuntimeException(trans('mcp::app.dev.run-skill.not-found', ['name' => $skillName]));
+        }
+
+        return $this->skillRenderer->render($skill, $args);
     }
 }

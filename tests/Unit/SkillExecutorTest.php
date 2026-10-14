@@ -5,6 +5,7 @@ use Webkul\MCP\DevTools\CommandRunner;
 use Webkul\MCP\DevTools\PluginGenerator;
 use Webkul\MCP\DevTools\TestGenerator;
 use Webkul\MCP\Services\SkillExecutor;
+use Webkul\MCP\Services\SkillLoader;
 
 beforeEach(function () {
     $this->fileManager = Mockery::mock(FileManagerInterface::class);
@@ -93,18 +94,30 @@ it('delegates generateTest to TestGenerator', function () {
     expect($result)->toContain('SkillLoaderTest.php');
 });
 
-it('returns placeholder message for executeSkill', function () {
-    $result = $this->executor->executeSkill('my-skill', ['arg1' => 'val1', 'arg2' => 'val2']);
+it('renders a known skill with its input', function () {
+    $loader = Mockery::mock(SkillLoader::class);
+    $loader->shouldReceive('find')->once()->with('my-skill')->andReturn([
+        'name' => 'my-skill',
+        'description' => 'Does things',
+        'content' => 'Step one.',
+    ]);
 
-    expect($result)->toContain('my-skill');
-    expect($result)->toContain('2 arguments');
+    $executor = new SkillExecutor($this->fileManager, $this->commandRunner, $this->pluginGenerator, $this->testGenerator, $loader);
+
+    expect($executor->executeSkill('my-skill', ['arg1' => 'val1']))
+        ->toContain('# Skill: my-skill')
+        ->toContain('Step one.')
+        ->toContain('"arg1": "val1"');
 });
 
-it('returns placeholder message for executeSkill with no args', function () {
-    $result = $this->executor->executeSkill('empty-skill');
+it('throws for a skill that does not exist', function () {
+    $loader = Mockery::mock(SkillLoader::class);
+    $loader->shouldReceive('find')->once()->with('empty-skill')->andReturn(null);
 
-    expect($result)->toContain('empty-skill');
-    expect($result)->toContain('0 arguments');
+    $executor = new SkillExecutor($this->fileManager, $this->commandRunner, $this->pluginGenerator, $this->testGenerator, $loader);
+
+    expect(fn () => $executor->executeSkill('empty-skill'))
+        ->toThrow(RuntimeException::class, 'empty-skill');
 });
 
 it('propagates FileManager exceptions', function () {

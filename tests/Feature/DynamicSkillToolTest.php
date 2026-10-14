@@ -52,3 +52,18 @@ it('loads dynamic skills from filesystem via SkillLoader', function () {
 
     File::deleteDirectory($tempDir);
 });
+
+it('exposes a valid mcp tool name for a skill name with spaces and punctuation', function () {
+    $loader = new SkillLoader(new SkillParser);
+    $name = 'Product Import: CSV & Excel (v2)';
+
+    $tool = new DynamicSkillTool(['name' => $name, 'tool_key' => $loader->normalizeToolName($name)]);
+
+    expect($tool->name())->toMatch('/^[a-zA-Z0-9_-]{1,64}$/');
+});
+
+it('keeps a very long skill name within the 64 character tool name limit', function () {
+    $tool = new DynamicSkillTool(['name' => str_repeat('very long skill name ', 10)]);
+
+    expect($tool->name())->toMatch('/^[a-zA-Z0-9_-]{1,64}$/');
+});

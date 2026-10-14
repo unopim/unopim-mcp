@@ -4,6 +4,7 @@ namespace Webkul\MCP\Tools\Settings;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
@@ -39,6 +40,8 @@ class CurrencyUpsertTool extends BaseMcpTool
             'items.*.status' => ['nullable', 'boolean'],
         ]);
 
+        $this->ensureNotDisablingCurrencyInUse($validated['items']);
+
         DB::beginTransaction();
         $results = [];
 
@@ -65,7 +68,35 @@ class CurrencyUpsertTool extends BaseMcpTool
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            return Response::error($e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Refuse, like the admin currency form, to disable a currency that a channel still uses.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     *
+     * @throws ValidationException
+     */
+    protected function ensureNotDisablingCurrencyInUse(array $items): void
+    {
+        $disabled = collect($items)->filter(fn (array $item): bool => array_key_exists('status', $item) && $item['status'] !== null && ! $item['status']);
+
+        if ($disabled->isEmpty()) {
+            return;
+        }
+
+        $currencies = $this->currencyRepository->findWhereIn('code', $disabled->pluck('code')->all())->keyBy('code');
+
+        foreach ($disabled as $index => $item) {
+            $currency = $currencies->get($item['code']);
+
+            if ($currency && $this->currencyRepository->checkCurrencyBeingUsed($currency->id)) {
+                throw ValidationException::withMessages([
+                    "items.{$index}.status" => trans('mcp::app.tools.upsert-currencies.can-not-disable', ['code' => $currency->code]),
+                ]);
+            }
         }
     }
 

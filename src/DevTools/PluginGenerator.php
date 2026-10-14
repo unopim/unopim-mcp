@@ -15,10 +15,17 @@ class PluginGenerator
      * Generate a full UnoPim plugin structure.
      *
      * @return array{name: string, path: string, message: string, files: list<string>}
+     *
+     * @throws \InvalidArgumentException when the name is not a valid StudlyCase package name.
      */
     public function generate(string $name, string $type = 'connector'): array
     {
         $name = Str::studly($name);
+
+        if (! preg_match('/^[A-Z][A-Za-z0-9]*$/', $name)) {
+            throw new \InvalidArgumentException(trans('mcp::app.dev.plugin-generator.invalid-name', ['name' => $name]));
+        }
+
         $basePath = "packages/Webkul/{$name}";
 
         if (File::exists(base_path($basePath))) {

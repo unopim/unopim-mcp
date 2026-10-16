@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'L\'exécution de la tâche est introuvable.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'La devise [:code] est utilisée par un canal et ne peut pas être désactivée.',
         ],

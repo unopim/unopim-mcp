@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'İş yürütmesi bulunamadı.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => '[:code] para birimi bir kanal tarafından kullanıldığı için devre dışı bırakılamaz.',
         ],

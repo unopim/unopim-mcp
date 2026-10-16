@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'Выполнение задания не найдено.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Валюта [:code] используется каналом, её нельзя отключить.',
         ],

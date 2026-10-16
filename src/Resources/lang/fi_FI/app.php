@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'Työn suoritusta ei löytynyt.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Valuutta [:code] on kanavan käytössä, eikä sitä voi poistaa käytöstä.',
         ],

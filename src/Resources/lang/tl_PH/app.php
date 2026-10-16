@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'Hindi nahanap ang pagpapatakbo ng job.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Ginagamit ng isang channel ang currency na [:code] kaya hindi ito maaaring i-disable.',
         ],

@@ -116,3 +116,45 @@ it('serves developer tools over http when the installation opts in', function ()
 
     expect($toolNames)->toContain('dev_tools')->toContain('run_database_query');
 });
+
+it('leaves developer tools out of the instructions sent to remote http clients by default', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    expect($server->createContext()->instructions)
+        ->toContain('search_products')
+        ->toContain('search_settings')
+        ->not->toContain('dev_tools')
+        ->not->toContain('run_skill')
+        ->not->toContain('get_app_info')
+        ->not->toContain('get_database_schema')
+        ->not->toContain('run_database_query')
+        ->not->toContain('read_logs');
+});
+
+it('describes developer tools to remote http clients when the installation opts in', function () {
+    Config::set('mcp.remote_developer_tools', true);
+
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    expect($server->createContext()->instructions)
+        ->toContain('dev_tools')
+        ->toContain('run_database_query')
+        ->toContain('read_logs');
+});
+
+it('describes developer tools to stdio clients', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => new FakeTransporter]);
+
+    expect($server->createContext()->instructions)
+        ->toContain('dev_tools')
+        ->toContain('run_database_query')
+        ->toContain('read_logs');
+});
+
+it('points clients to the tools that actually return channels, locales and attributes', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    expect($server->createContext()->instructions)
+        ->not->toContain('Always start with `get_catalog_schema`')
+        ->toContain('search_attributes');
+});

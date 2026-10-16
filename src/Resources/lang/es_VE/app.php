@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'No se encontró la ejecución del trabajo.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'La moneda [:code] se usa en un canal y no se puede desactivar.',
         ],

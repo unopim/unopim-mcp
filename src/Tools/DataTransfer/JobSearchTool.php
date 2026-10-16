@@ -3,10 +3,13 @@
 namespace Webkul\MCP\Tools\DataTransfer;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Collection;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\DataTransfer\Repositories\JobInstancesRepository;
+use Webkul\DataTransfer\Repositories\JobTrackRepository;
 use Webkul\MCP\Services\UnoPimQueryBuilder;
 use Webkul\MCP\Tools\BaseMcpTool;
 
@@ -16,7 +19,7 @@ class JobSearchTool extends BaseMcpTool
     /**
      * The tool's description.
      */
-    protected string $description = 'Search for import/export job instances in UnoPim using generic filters and pagination.';
+    protected string $description = 'Search for import/export job instances in UnoPim using generic filters and pagination. Each job includes its latest_execution (id, state, started_at, completed_at, or null if it never ran); pass latest_execution.id to get_job_execution for row counts and errors.';
 
     /**
      * The tool's name.
@@ -25,6 +28,7 @@ class JobSearchTool extends BaseMcpTool
 
     public function __construct(
         protected JobInstancesRepository $jobInstancesRepository,
+        protected JobTrackRepository $jobTrackRepository,
         protected UnoPimQueryBuilder $queryBuilder
     ) {}
 
@@ -48,18 +52,50 @@ class JobSearchTool extends BaseMcpTool
             $validated['cursor'] ?? null
         );
 
+        $latestExecutions = $this->latestExecutions($paginator->pluck('id'));
+
         return Response::json([
             'count' => $paginator->count(),
             'next_cursor' => $paginator->nextCursor()?->encode(),
             'has_more' => $paginator->hasMorePages(),
-            'jobs' => $paginator->map(fn ($j) => [
+            'jobs' => $paginator->map(fn ($j): array => [
                 'id' => $j->id,
                 'code' => $j->code,
                 'type' => $j->type,
                 'entity_type' => $j->entity_type,
                 'action' => $j->action,
+                'latest_execution' => $latestExecutions->get($j->id),
             ])->values()->all(),
         ]);
+    }
+
+    /**
+     * The newest execution of each given job instance, keyed by job instance id, in one query.
+     *
+     * @param  Collection<int, int>  $jobIds
+     * @return Collection<int, array{id: int, state: string, started_at: ?string, completed_at: ?string}>
+     */
+    protected function latestExecutions(Collection $jobIds): Collection
+    {
+        if ($jobIds->isEmpty()) {
+            return collect();
+        }
+
+        $model = $this->jobTrackRepository->getModel();
+
+        return $model->newQuery()
+            ->whereIn($model->getKeyName(), fn (Builder $query) => $query
+                ->selectRaw('max('.$query->getGrammar()->wrap($model->getKeyName()).')')
+                ->from($model->getTable())
+                ->whereIn('job_instances_id', $jobIds->all())
+                ->groupBy('job_instances_id'))
+            ->get(['id', 'job_instances_id', 'state', 'started_at', 'completed_at'])
+            ->mapWithKeys(fn ($execution): array => [$execution->job_instances_id => [
+                'id' => $execution->id,
+                'state' => $execution->state,
+                'started_at' => $execution->started_at?->toIso8601String(),
+                'completed_at' => $execution->completed_at?->toIso8601String(),
+            ]]);
     }
 
     /**

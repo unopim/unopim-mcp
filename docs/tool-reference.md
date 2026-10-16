@@ -130,8 +130,10 @@ Note: the `name` field is derived from the ISO code by the Currency model access
 ### `search_jobs`
 Search import/export job instances. Filterable fields: `code`, `type`, `entity_type`, `action`.
 
+Each job carries `latest_execution`: its newest run as `{id, state, started_at, completed_at}` (ISO 8601 timestamps), or `null` if it has never run. Pass `latest_execution.id` to `get_job_execution` for row counts and errors.
+
 ### `get_job_execution`
-Fetch a single job execution (JobTrack) by ID. Response includes `state`, `processed_rows_count`, `invalid_rows_count`, `errors_count`, `summary`, `started_at`, `completed_at`, and `errors`.
+Fetch a single job execution (JobTrack) by ID, such as `latest_execution.id` from `search_jobs`. Response includes `state`, `processed_rows_count`, `invalid_rows_count`, `errors_count`, `summary`, `started_at`, `completed_at`, and `errors`.
 
 | Field | Type | Notes |
 |---|---|---|

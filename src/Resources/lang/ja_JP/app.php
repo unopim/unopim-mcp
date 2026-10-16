@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'ジョブの実行が見つかりません。',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => '通貨 [:code] はチャネルで使用されているため、無効にできません。',
         ],

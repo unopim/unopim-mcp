@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- The server instructions sent to clients only describe the developer tools, diagnostics and dynamic skills when they are served: over stdio, or over HTTP with `MCP_REMOTE_DEVELOPER_TOOLS` enabled.
+- The server instructions no longer tell clients to start with `get_catalog_schema` to discover the catalog structure; they point to `search_settings` for channels and locales and `search_attributes` for attribute definitions.
+- `get_job_execution` reports a missing execution with a translated message.
+
+### Added
+- `search_jobs` returns each job's `latest_execution` (`id`, `state`, `started_at`, `completed_at`, or `null` if it never ran), loaded in one query per page. Its `id` is the one `get_job_execution` takes.
+
 ## [1.0.4] - 2026-10-14
 
 ### Security

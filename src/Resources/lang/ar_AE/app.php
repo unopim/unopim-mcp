@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'لم يتم العثور على تنفيذ المهمة.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'العملة [:code] مستخدمة في قناة ولا يمكن تعطيلها.',
         ],

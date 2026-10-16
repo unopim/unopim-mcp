@@ -35,7 +35,7 @@ class JobExecutionTool extends BaseMcpTool
         $execution = $this->jobTrackRepository->find($validated['id']);
 
         if (! $execution) {
-            return Response::error('Job execution not found.');
+            return Response::error(trans('mcp::app.tools.job-execution.not-found'));
         }
 
         return Response::json([

@@ -113,8 +113,13 @@ it('loads the latest executions of a page of jobs in a single query', function (
 it('reports a missing job execution with a translated message', function () {
     app()->setLocale('fr_FR');
 
-    UnoPimAgentServer::tool(JobExecutionTool::class, ['id' => PHP_INT_MAX])
+    UnoPimAgentServer::tool(JobExecutionTool::class, ['id' => 999999])
         ->assertHasErrors([trans('mcp::app.tools.job-execution.not-found')]);
 
     expect(trans('mcp::app.tools.job-execution.not-found'))->toBe("L'exécution de la tâche est introuvable.");
+});
+
+it('rejects a job execution id outside the integer column range before querying', function () {
+    UnoPimAgentServer::tool(JobExecutionTool::class, ['id' => PHP_INT_MAX])
+        ->assertHasErrors([trans('validation.max.numeric', ['attribute' => 'id', 'max' => 2147483647])]);
 });

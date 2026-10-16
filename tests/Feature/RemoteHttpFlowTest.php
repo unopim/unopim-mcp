@@ -105,7 +105,7 @@ it('answers a remote admin in the admin ui locale', function () {
 
     Passport::actingAs($admin->fresh(), [], 'api');
 
-    [, $body] = mcpRpc($this, 'tools/call', ['name' => 'get_job_execution', 'arguments' => ['id' => PHP_INT_MAX]]);
+    [, $body] = mcpRpc($this, 'tools/call', ['name' => 'get_job_execution', 'arguments' => ['id' => 999999]]);
 
     expect($body['result']['content'][0]['text'] ?? '')->toContain('Die Jobausführung wurde nicht gefunden.');
 });
@@ -118,7 +118,7 @@ it('resets the locale to the application default for a remote admin without a ui
 
     Passport::actingAs($admin->fresh(), [], 'api');
 
-    [, $body] = mcpRpc($this, 'tools/call', ['name' => 'get_job_execution', 'arguments' => ['id' => PHP_INT_MAX]]);
+    [, $body] = mcpRpc($this, 'tools/call', ['name' => 'get_job_execution', 'arguments' => ['id' => 999999]]);
 
     expect($body['result']['content'][0]['text'] ?? '')->toContain(trans('mcp::app.tools.job-execution.not-found', [], config('app.locale')));
 });

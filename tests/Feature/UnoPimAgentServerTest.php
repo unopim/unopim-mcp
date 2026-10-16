@@ -158,3 +158,20 @@ it('points clients to the tools that actually return channels, locales and attri
         ->not->toContain('Always start with `get_catalog_schema`')
         ->toContain('search_attributes');
 });
+
+it('sends instructions without leading indentation to remote http clients', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    expect($server->createContext()->instructions)
+        ->toStartWith('This MCP server')
+        ->not->toMatch('/^[ \t]+\S/m');
+});
+
+it('sends instructions without leading indentation to stdio clients', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => new FakeTransporter]);
+
+    expect($server->createContext()->instructions)
+        ->toStartWith('This MCP server')
+        ->toContain("\n\n### Developer Tools\n")
+        ->not->toMatch('/^[ \t]+\S/m');
+});

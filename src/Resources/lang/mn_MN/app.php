@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'Ажлын гүйцэтгэл олдсонгүй.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => '[:code] валютыг суваг ашиглаж байгаа тул идэвхгүй болгох боломжгүй.',
         ],

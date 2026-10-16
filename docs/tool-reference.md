@@ -99,7 +99,7 @@ Manage attribute groups. Upsert fields: `code` (required), `name`.
 ## Settings Tools
 
 ### `search_settings`
-Search channels or locales. Pass `type`: `channels` or `locales`.
+Search channels or locales. Pass `type`: `channels` or `locales`. `locales` lists every locale UnoPim ships, enabled or not; filter with `[{"field": "status", "operator": "=", "value": 1}]` for the active ones.
 
 ### `upsert_settings`
 Create or update channels or locales in a single atomic call. Pass `type` (`channels` or `locales`) plus an `items[]` array keyed by `code`.
@@ -130,8 +130,10 @@ Note: the `name` field is derived from the ISO code by the Currency model access
 ### `search_jobs`
 Search import/export job instances. Filterable fields: `code`, `type`, `entity_type`, `action`.
 
+Each job carries `latest_execution`: its newest run as `{id, state, started_at, completed_at}` (ISO 8601 timestamps), or `null` if it has never run. Pass `latest_execution.id` to `get_job_execution` for row counts and errors. `latest_execution` is left out when the caller lacks `data_transfer.job_tracker`, the permission `get_job_execution` needs. On PostgreSQL, `job_track` has no index on `job_instances_id` unless one is added, so the lookup scans that table on large job histories.
+
 ### `get_job_execution`
-Fetch a single job execution (JobTrack) by ID. Response includes `state`, `processed_rows_count`, `invalid_rows_count`, `errors_count`, `summary`, `started_at`, `completed_at`, and `errors`.
+Fetch a single job execution (JobTrack) by ID (an integer from 1 to 2147483647), such as `latest_execution.id` from `search_jobs`. Response includes `state`, `processed_rows_count`, `invalid_rows_count`, `errors_count`, `summary`, `started_at`, `completed_at`, and `errors`.
 
 | Field | Type | Notes |
 |---|---|---|

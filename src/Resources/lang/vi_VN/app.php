@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'Không tìm thấy lần thực thi công việc.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Tiền tệ [:code] đang được một kênh sử dụng nên không thể tắt.',
         ],

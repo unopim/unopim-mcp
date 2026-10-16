@@ -37,6 +37,18 @@ abstract class BaseMcpTool extends Tool
     }
 
     /**
+     * Whether the current caller holds the given ACL permission; local stdio sessions are trusted.
+     */
+    protected function allows(string $permission): bool
+    {
+        if (app()->runningInConsole() && ! app()->environment('testing')) {
+            return true;
+        }
+
+        return ! function_exists('bouncer') || bouncer()->hasPermission($permission);
+    }
+
+    /**
      * The actual implementation of the tool logic.
      */
     abstract protected function execute(Request $request): Response;

@@ -29,13 +29,13 @@ class JobExecutionTool extends BaseMcpTool
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
-            'id' => ['required', 'integer'],
+            'id' => ['required', 'integer', 'min:1', 'max:2147483647'],
         ]);
 
         $execution = $this->jobTrackRepository->find($validated['id']);
 
         if (! $execution) {
-            return Response::error('Job execution not found.');
+            return Response::error(trans('mcp::app.tools.job-execution.not-found'));
         }
 
         return Response::json([
@@ -59,7 +59,9 @@ class JobExecutionTool extends BaseMcpTool
     {
         return [
             'id' => $schema->integer()
-                ->description('The ID of the job execution to retrieve.')
+                ->description('The ID of the job execution to retrieve, from search_jobs latest_execution.id.')
+                ->min(1)
+                ->max(2147483647)
                 ->required(),
         ];
     }

@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => '找不到作業執行記錄。',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => '貨幣 [:code] 正被通路使用，無法停用。',
         ],

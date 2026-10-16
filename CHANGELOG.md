@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-10-16
+
+### Fixed
+- The server instructions sent to clients only describe the developer tools, diagnostics and dynamic skills when they are served: over stdio, or over HTTP with `MCP_REMOTE_DEVELOPER_TOOLS` enabled.
+- The server instructions no longer tell clients to start with `get_catalog_schema` to discover the catalog structure; they point to `search_settings` for channels and locales and `search_attributes` for attribute definitions.
+- `get_job_execution` reports a missing execution with a translated message.
+- `get_job_execution` rejects an `id` outside the integer column range with a validation error; on PostgreSQL such an id previously failed with a generic error.
+- Remote (HTTP) MCP requests use the authenticated admin's UI locale, as the admin panel does, so translated messages match the admin's language; admins without one get the application default.
+- The server instructions tell clients to filter `search_settings` locales by `status` = 1, since the unfiltered list includes every locale UnoPim ships.
+- The `get_job_execution` input schema advertises the accepted `id` range (1 to 2147483647).
+- The server instructions are sent without leading indentation, so clients no longer render them as a Markdown code block.
+
+### Added
+- `search_jobs` returns each job's `latest_execution` (`id`, `state`, `started_at`, `completed_at`, or `null` if it never ran), loaded in one query per page. Its `id` is the one `get_job_execution` takes. It is included only for admins with the `data_transfer.job_tracker` permission.
+
 ## [1.0.4] - 2026-10-14
 
 ### Security

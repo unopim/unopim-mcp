@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'Eksekusi pekerjaan tidak ditemukan.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Mata uang [:code] digunakan oleh sebuah kanal dan tidak dapat dinonaktifkan.',
         ],

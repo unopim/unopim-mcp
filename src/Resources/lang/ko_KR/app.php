@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => '작업 실행을 찾을 수 없습니다.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => '통화 [:code]은(는) 채널에서 사용 중이므로 비활성화할 수 없습니다.',
         ],

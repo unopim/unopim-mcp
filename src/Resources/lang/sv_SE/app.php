@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'Jobbkörningen hittades inte.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Valutan [:code] används av en kanal och kan inte inaktiveras.',
         ],

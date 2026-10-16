@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'Nie znaleziono wykonania zadania.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Waluta [:code] jest używana przez kanał i nie można jej wyłączyć.',
         ],

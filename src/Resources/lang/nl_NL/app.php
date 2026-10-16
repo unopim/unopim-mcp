@@ -14,6 +14,9 @@ return [
     ],
 
     'tools' => [
+        'job-execution' => [
+            'not-found' => 'Taakuitvoering niet gevonden.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Valuta [:code] wordt door een kanaal gebruikt en kan niet worden uitgeschakeld.',
         ],

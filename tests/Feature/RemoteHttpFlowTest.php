@@ -2,6 +2,7 @@
 
 use Laravel\Passport\ClientRepository;
 use Laravel\Passport\Passport;
+use Webkul\Core\Models\Locale;
 use Webkul\User\Models\Admin;
 use Webkul\User\Models\Role;
 
@@ -94,4 +95,31 @@ it('refuses a remote call from a disabled admin with a 401 challenge', function 
 
     expect($response->status())->toBe(401)
         ->and($response->headers->get('WWW-Authenticate'))->toContain('Bearer');
+});
+
+it('answers a remote admin in the admin ui locale', function () {
+    $locale = Locale::where('code', 'de_DE')->first() ?? Locale::factory()->create(['code' => 'de_DE', 'status' => 1]);
+
+    $admin = remoteAdmin('all');
+    $admin->update(['ui_locale_id' => $locale->id]);
+
+    Passport::actingAs($admin->fresh(), [], 'api');
+
+    [, $body] = mcpRpc($this, 'tools/call', ['name' => 'get_job_execution', 'arguments' => ['id' => 999999]]);
+
+    expect($body['result']['content'][0]['text'] ?? '')->toContain('Die Jobausführung wurde nicht gefunden.');
+});
+
+it('resets the locale to the application default for a remote admin without a ui locale', function () {
+    config(['app.locale' => 'en_US']);
+    app('translator')->setLocale('de_DE');
+
+    $admin = remoteAdmin('all');
+    $admin->update(['ui_locale_id' => null]);
+
+    Passport::actingAs($admin->fresh(), [], 'api');
+
+    [, $body] = mcpRpc($this, 'tools/call', ['name' => 'get_job_execution', 'arguments' => ['id' => 999999]]);
+
+    expect($body['result']['content'][0]['text'] ?? '')->toBe('Job execution not found.');
 });

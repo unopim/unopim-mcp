@@ -43,6 +43,7 @@ class UnoPimAgentServer extends Server
 
     ### Guidelines
     - Use `get_catalog_schema` to learn the filterable fields and operators before building filters, `search_settings` (type `channels` or `locales`) to discover channels and locales, and `search_attributes` for attribute definitions.
+    - `search_settings` type `locales` lists every locale UnoPim ships, enabled or not; pass the filter `[{"field": "status", "operator": "=", "value": 1}]` to get only the active ones.
     - All search tools support generic filters with operators: `=`, `!=`, `IN`, `NOT IN`, `CONTAINS`, `STARTS WITH`, `ENDS WITH`, `>`, `<`.
     - All search tools use cursor-based pagination (max 100 per page).
     - Access the `catalog-schema` resource for a high-level catalog summary.

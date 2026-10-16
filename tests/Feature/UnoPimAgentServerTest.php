@@ -175,3 +175,10 @@ it('sends instructions without leading indentation to stdio clients', function (
         ->toContain("\n\n### Developer Tools\n")
         ->not->toMatch('/^[ \t]+\S/m');
 });
+
+it('tells clients to filter locales to the active ones', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    expect($server->createContext()->instructions)
+        ->toContain('{"field": "status", "operator": "=", "value": 1}');
+});

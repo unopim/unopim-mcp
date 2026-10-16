@@ -111,7 +111,8 @@ it('answers a remote admin in the admin ui locale', function () {
 });
 
 it('resets the locale to the application default for a remote admin without a ui locale', function () {
-    app()->setLocale('de_DE');
+    config(['app.locale' => 'en_US']);
+    app('translator')->setLocale('de_DE');
 
     $admin = remoteAdmin('all');
     $admin->update(['ui_locale_id' => null]);
@@ -120,5 +121,5 @@ it('resets the locale to the application default for a remote admin without a ui
 
     [, $body] = mcpRpc($this, 'tools/call', ['name' => 'get_job_execution', 'arguments' => ['id' => 999999]]);
 
-    expect($body['result']['content'][0]['text'] ?? '')->toContain(trans('mcp::app.tools.job-execution.not-found', [], config('app.locale')));
+    expect($body['result']['content'][0]['text'] ?? '')->toBe('Job execution not found.');
 });

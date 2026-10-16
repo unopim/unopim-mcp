@@ -155,3 +155,19 @@ it('refuses to disable a locale that a channel uses', function () {
 
     expect((bool) Locale::find($locale->id)->status)->toBeTrue();
 });
+
+it('lists only the active locales when filtered by status', function () {
+    $active = Locale::factory()->create(['code' => 'xa_AC', 'status' => 1]);
+    $inactive = Locale::factory()->create(['code' => 'xi_IN', 'status' => 0]);
+
+    $payload = $this->toolPayload(SettingSearchTool::class, [
+        'type' => 'locales',
+        'filters' => [['field' => 'status', 'operator' => '=', 'value' => 1]],
+        'limit' => 100,
+    ]);
+
+    $codes = collect($payload['results'])->pluck('code');
+
+    expect($codes)->toContain($active->code)
+        ->not->toContain($inactive->code);
+});

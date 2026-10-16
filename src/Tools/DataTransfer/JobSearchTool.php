@@ -19,7 +19,7 @@ class JobSearchTool extends BaseMcpTool
     /**
      * The tool's description.
      */
-    protected string $description = 'Search for import/export job instances in UnoPim using generic filters and pagination. Each job includes its latest_execution (id, state, started_at, completed_at, or null if it never ran); pass latest_execution.id to get_job_execution for row counts and errors.';
+    protected string $description = 'Search for import/export job instances in UnoPim using generic filters and pagination. Each job includes its latest_execution (id, state, started_at, completed_at, or null if it never ran); pass latest_execution.id to get_job_execution for row counts and errors. latest_execution is omitted when the caller lacks job tracker access.';
 
     /**
      * The tool's name.
@@ -52,7 +52,9 @@ class JobSearchTool extends BaseMcpTool
             $validated['cursor'] ?? null
         );
 
-        $latestExecutions = $this->latestExecutions($paginator->pluck('id'));
+        $latestExecutions = $this->allows('data_transfer.job_tracker')
+            ? $this->latestExecutions($paginator->pluck('id'))
+            : null;
 
         return Response::json([
             'count' => $paginator->count(),
@@ -64,7 +66,7 @@ class JobSearchTool extends BaseMcpTool
                 'type' => $j->type,
                 'entity_type' => $j->entity_type,
                 'action' => $j->action,
-                'latest_execution' => $latestExecutions->get($j->id),
+                ...($latestExecutions === null ? [] : ['latest_execution' => $latestExecutions->get($j->id)]),
             ])->values()->all(),
         ]);
     }

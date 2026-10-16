@@ -7,6 +7,15 @@ use Webkul\DataTransfer\Models\JobTrack;
 use Webkul\MCP\Servers\UnoPimAgentServer;
 use Webkul\MCP\Tools\DataTransfer\JobExecutionTool;
 use Webkul\MCP\Tools\DataTransfer\JobSearchTool;
+use Webkul\User\Models\Admin;
+use Webkul\User\Models\Role;
+
+function actingAsJobAdmin(string $type = 'all', array $permissions = []): void
+{
+    $role = Role::factory()->create(['permission_type' => $type, 'permissions' => $permissions]);
+
+    test()->actingAs(Admin::factory()->create(['role_id' => $role->id]), 'admin');
+}
 
 it('searches job instances through the mcp tool', function () {
     UnoPimAgentServer::tool(JobSearchTool::class)
@@ -46,6 +55,8 @@ it('gets job execution details', function () {
 });
 
 it('returns the latest execution of each job so its id can be passed to get_job_execution', function () {
+    actingAsJobAdmin();
+
     $job = JobInstances::factory()->importJob()->create();
 
     JobTrack::factory()->create([
@@ -76,6 +87,8 @@ it('returns the latest execution of each job so its id can be passed to get_job_
 });
 
 it('returns a null latest execution for a job that has never run', function () {
+    actingAsJobAdmin();
+
     $job = JobInstances::factory()->importJob()->create();
 
     $payload = $this->toolPayload(JobSearchTool::class, [
@@ -88,6 +101,8 @@ it('returns a null latest execution for a job that has never run', function () {
 });
 
 it('loads the latest executions of a page of jobs in a single query', function () {
+    actingAsJobAdmin();
+
     $jobs = JobInstances::factory()->importJob()->count(3)->create();
 
     foreach ($jobs as $job) {
@@ -108,6 +123,28 @@ it('loads the latest executions of a page of jobs in a single query', function (
     ]);
 
     expect($trackQueries)->toBe(1);
+});
+
+it('omits the latest execution for an admin without job tracker access', function () {
+    actingAsJobAdmin('custom', ['data_transfer']);
+
+    $job = JobInstances::factory()->importJob()->create();
+
+    JobTrack::factory()->create(['job_instances_id' => $job->id]);
+
+    $payload = $this->toolPayload(JobSearchTool::class, [
+        'filters' => [['field' => 'code', 'operator' => '=', 'value' => $job->code]],
+    ]);
+
+    expect($payload['jobs'])->toHaveCount(1)
+        ->and($payload['jobs'][0])->not->toHaveKey('latest_execution');
+});
+
+it('advertises the job execution id bounds in the schema', function () {
+    $schema = app(JobExecutionTool::class)->toArray()['inputSchema']['properties']['id'];
+
+    expect($schema['minimum'] ?? null)->toBe(1)
+        ->and($schema['maximum'] ?? null)->toBe(2147483647);
 });
 
 it('reports a missing job execution with a translated message', function () {

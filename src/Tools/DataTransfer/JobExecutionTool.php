@@ -59,7 +59,9 @@ class JobExecutionTool extends BaseMcpTool
     {
         return [
             'id' => $schema->integer()
-                ->description('The ID of the job execution to retrieve.')
+                ->description('The ID of the job execution to retrieve, from search_jobs latest_execution.id.')
+                ->min(1)
+                ->max(2147483647)
                 ->required(),
         ];
     }

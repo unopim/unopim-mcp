@@ -18,6 +18,11 @@ class ProductGetTool extends BaseMcpTool
     protected string $description = 'Retrieve full details for a specific product by its identifier (ID or SKU).';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Get product';
+
+    /**
      * The tool's name.
      */
     public string $name = 'get_product';

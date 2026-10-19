@@ -19,6 +19,11 @@ class ProductSearchTool extends BaseMcpTool
     protected string $description = 'Search for products in the UnoPim catalog using generic filters and pagination.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Search products';
+
+    /**
      * The tool's name.
      */
     public string $name = 'search_products';

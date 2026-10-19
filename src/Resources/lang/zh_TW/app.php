@@ -6,6 +6,7 @@ return [
         'heading' => '授權 :client',
         'lede' => '此應用程式正在要求存取您的 UnoPim 帳號。',
         'signed-in-as' => '目前登入帳號',
+        'redirects-to' => '重新導向至',
         'permissions' => '它將能夠',
         'approve' => '授權',
         'approving' => '正在授權…',

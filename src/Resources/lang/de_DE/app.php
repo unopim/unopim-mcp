@@ -6,6 +6,7 @@ return [
         'heading' => 'Autorisieren :client',
         'lede' => 'Diese Anwendung fordert Zugriff auf Ihr UnoPim-Konto an.',
         'signed-in-as' => 'Angemeldet als',
+        'redirects-to' => 'Leitet Sie weiter zu',
         'permissions' => 'Sie kann',
         'approve' => 'Autorisieren',
         'approving' => 'Wird autorisiert…',

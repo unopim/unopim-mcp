@@ -6,6 +6,7 @@ return [
         'heading' => '授权 :client',
         'lede' => '此应用程序正在请求访问您的 UnoPim 账户。',
         'signed-in-as' => '当前登录账户',
+        'redirects-to' => '重定向至',
         'permissions' => '它将能够',
         'approve' => '授权',
         'approving' => '正在授权…',

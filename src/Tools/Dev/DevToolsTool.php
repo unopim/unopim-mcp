@@ -20,6 +20,11 @@ class DevToolsTool extends BaseMcpTool
     protected string $description = 'Standard developer operations: file management, command execution, and code generation.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Developer tools';
+
+    /**
      * The tool's name.
      */
     public string $name = 'dev_tools';

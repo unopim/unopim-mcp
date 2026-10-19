@@ -6,6 +6,7 @@ return [
         'heading' => 'Authorise :client',
         'lede' => 'This application is requesting access to your UnoPim account.',
         'signed-in-as' => 'Signed in as',
+        'redirects-to' => 'Redirects to',
         'permissions' => 'It will be able to',
         'approve' => 'Authorise',
         'approving' => 'Authorising…',

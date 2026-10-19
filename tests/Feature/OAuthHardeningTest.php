@@ -67,6 +67,19 @@ it('still accepts an S256 authorization request', function () {
     $this->get(authorizeQuery($clientId))->assertOk()->assertSee('ChatGPT');
 });
 
+it('shows the redirect host on the consent screen so a borrowed client name cannot hide where the code goes', function () {
+    $clientId = test()->postJson('/oauth/register', [
+        'client_name' => 'Claude',
+        'redirect_uris' => ['https://attacker.example/callback'],
+    ])->assertSuccessful()->json('client_id');
+
+    actingAsMcpAdmin();
+
+    $this->get(authorizeQuery($clientId, ['redirect_uri' => 'https://attacker.example/callback']))
+        ->assertOk()
+        ->assertSeeInOrder([trans('mcp::app.authorize.redirects-to'), 'attacker.example']);
+});
+
 it('rejects a registration with too many redirect uris', function () {
     $this->postJson('/oauth/register', [
         'client_name' => 'ChatGPT',
@@ -105,6 +118,27 @@ it('rejects an oversized registration body', function () {
         ->assertStatus(400)
         ->assertJsonPath('error', 'invalid_client_metadata')
         ->assertJsonPath('error_description', trans('mcp::app.oauth.registration.body-too-large', ['max' => 16384]));
+});
+
+it('caps client registration across all ips so a rotating proxy address cannot bypass the per ip limit', function () {
+    config([
+        'mcp.oauth.registration.rate_limit' => 100,
+        'mcp.oauth.registration.global_rate_limit' => 2,
+    ]);
+
+    foreach (['203.0.113.1', '203.0.113.2'] as $ip) {
+        $this->withServerVariables(['REMOTE_ADDR' => $ip]);
+
+        registerChatGptClient();
+    }
+
+    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.3'])
+        ->postJson('/oauth/register', [
+            'client_name' => 'ChatGPT',
+            'redirect_uris' => ['https://chatgpt.com/connector_platform_oauth_redirect'],
+        ])
+        ->assertStatus(429)
+        ->assertJsonPath('error', 'too_many_requests');
 });
 
 it('rate limits client registration per ip', function () {

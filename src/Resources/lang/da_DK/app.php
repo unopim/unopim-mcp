@@ -6,6 +6,7 @@ return [
         'heading' => 'Godkend :client',
         'lede' => 'Denne applikation anmoder om adgang til din UnoPim-konto.',
         'signed-in-as' => 'Logget ind som',
+        'redirects-to' => 'Sender dig videre til',
         'permissions' => 'Den vil kunne',
         'approve' => 'Godkend',
         'approving' => 'Godkender…',

@@ -22,6 +22,11 @@ class CurrencyUpsertTool extends BaseMcpTool
     protected string $description = 'Create or update one or more currencies in UnoPim. Automatically determines create vs update based on code existence.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Create or update currencies';
+
+    /**
      * The tool's name.
      */
     public string $name = 'upsert_currencies';

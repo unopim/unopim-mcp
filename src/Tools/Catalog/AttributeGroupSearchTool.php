@@ -19,6 +19,11 @@ class AttributeGroupSearchTool extends BaseMcpTool
     protected string $description = 'Search for attribute groups in the UnoPim catalog using generic filters and pagination.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Search attribute groups';
+
+    /**
      * The tool's name.
      */
     public string $name = 'search_attribute_groups';

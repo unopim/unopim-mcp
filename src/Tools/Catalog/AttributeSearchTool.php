@@ -19,6 +19,11 @@ class AttributeSearchTool extends BaseMcpTool
     protected string $description = 'Search for product attributes in the UnoPim catalog using generic filters and pagination.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Search attributes';
+
+    /**
      * The tool's name.
      */
     public string $name = 'search_attributes';

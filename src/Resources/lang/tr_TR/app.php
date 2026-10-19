@@ -6,6 +6,7 @@ return [
         'heading' => 'Yetkilendir :client',
         'lede' => 'Bu uygulama UnoPim hesabınıza erişim istiyor.',
         'signed-in-as' => 'Oturum açan kullanıcı',
+        'redirects-to' => 'Yönlendirilecek adres',
         'permissions' => 'Şunları yapabilecek',
         'approve' => 'Yetkilendir',
         'approving' => 'Yetkilendiriliyor…',

@@ -6,6 +6,7 @@ return [
         'heading' => 'Autoriziraj :client',
         'lede' => 'Ova aplikacija traži pristup vašem UnoPim računu.',
         'signed-in-as' => 'Prijavljeni ste kao',
+        'redirects-to' => 'Preusmjerava na',
         'permissions' => 'Moći će',
         'approve' => 'Autoriziraj',
         'approving' => 'Autorizacija u tijeku…',

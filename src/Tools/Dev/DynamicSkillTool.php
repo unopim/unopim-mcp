@@ -3,6 +3,7 @@
 namespace Webkul\MCP\Tools\Dev;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
@@ -34,6 +35,11 @@ class DynamicSkillTool extends BaseMcpTool
         $key = trim((string) preg_replace('/[^a-z0-9]+/', '_', strtolower((string) $key)), '_');
 
         return substr('execute_'.($key === '' ? 'skill' : $key), 0, 64);
+    }
+
+    public function title(): string
+    {
+        return 'Run '.Str::headline((string) ($this->skillData['name'] ?? '')).' skill';
     }
 
     public function description(): string

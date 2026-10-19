@@ -18,6 +18,11 @@ class JobExecutionTool extends BaseMcpTool
     protected string $description = 'Retrieve details and status for a specific job execution (JobTrack) in UnoPim.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Get job execution';
+
+    /**
      * The tool's name.
      */
     public string $name = 'get_job_execution';

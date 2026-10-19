@@ -99,7 +99,7 @@ Manage attribute groups. Upsert fields: `code` (required), `name`.
 ## Settings Tools
 
 ### `search_settings`
-Search channels or locales. Pass `type`: `channels` or `locales`. `locales` lists every locale UnoPim ships, enabled or not; filter with `[{"field": "status", "operator": "=", "value": 1}]` for the active ones.
+Search channels or locales. Pass `type`: `channels` or `locales`. `locales` lists every locale UnoPim ships, enabled or not; filter with `[{"field": "status", "operator": "=", "value": 1}]` for the active ones. Each channel includes `locales` and `currencies` as lists of the codes assigned to it.
 
 ### `upsert_settings`
 Create or update channels or locales in a single atomic call. Pass `type` (`channels` or `locales`) plus an `items[]` array keyed by `code`.

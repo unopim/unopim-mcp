@@ -5,6 +5,7 @@ use Webkul\MCP\Tools\Catalog\CategoryUpsertTool;
 use Webkul\MCP\Tools\Catalog\ProductSearchTool;
 use Webkul\MCP\Tools\Catalog\ProductUpsertTool;
 use Webkul\MCP\Tools\Dev\DatabaseQueryTool;
+use Webkul\MCP\Tools\Dev\DynamicSkillTool;
 use Webkul\MCP\Tools\Dev\RunSkillTool;
 
 /**
@@ -47,4 +48,23 @@ it('annotates every registered tool', function () {
         ->all();
 
     expect($unannotated)->toBeEmpty();
+});
+
+/**
+ * Without an explicit title laravel/mcp falls back to the class name, so
+ * clients list tools as "Product Get Tool" instead of a readable action.
+ */
+it('gives every registered tool a human readable title', function () {
+    $untitled = collect(ToolRegistry::tools())
+        ->filter(fn (string $tool): bool => str_ends_with(app($tool)->toArray()['title'], ' Tool'))
+        ->values()
+        ->all();
+
+    expect($untitled)->toBeEmpty();
+});
+
+it('titles a dynamic skill after the skill it runs', function () {
+    $tool = new DynamicSkillTool(['name' => 'catalog-audit', 'description' => 'Audit the catalog.']);
+
+    expect($tool->toArray()['title'])->toBe('Run Catalog Audit skill');
 });

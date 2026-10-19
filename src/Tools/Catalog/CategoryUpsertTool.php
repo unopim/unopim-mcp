@@ -24,6 +24,11 @@ class CategoryUpsertTool extends BaseMcpTool
     protected string $description = 'Create or update one or more categories in the UnoPim catalog. Automatically determines create vs update based on code existence.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Create or update categories';
+
+    /**
      * The tool's name.
      */
     public string $name = 'upsert_categories';

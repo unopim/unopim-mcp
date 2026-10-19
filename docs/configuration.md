@@ -62,6 +62,7 @@ return [
             'max_redirect_uris'       => env('MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URIS', 10),
             'max_redirect_uri_length' => env('MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URI_LENGTH', 2048),
             'rate_limit'              => env('MCP_OAUTH_REGISTRATION_RATE_LIMIT', 10),
+            'global_rate_limit'       => env('MCP_OAUTH_REGISTRATION_GLOBAL_RATE_LIMIT', 100),
         ],
     ],
 ];
@@ -117,7 +118,8 @@ return [
 - `max_redirect_uris` — `MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URIS`, default `10`. More redirect URIs are rejected with `400 invalid_client_metadata`.
 - `max_redirect_uri_length` — `MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URI_LENGTH`, default `2048` characters per redirect URI; longer ones are rejected with `400 invalid_client_metadata`.
 - `rate_limit` — `MCP_OAUTH_REGISTRATION_RATE_LIMIT`, default `10` registrations per minute per client IP (limiter `mcp-oauth-register`). Excess requests get `429 too_many_requests` with a `Retry-After` header.
-- Behind a reverse proxy, configure Laravel's trusted proxies so the limit is counted per real client IP rather than per proxy.
+- `global_rate_limit` — `MCP_OAUTH_REGISTRATION_GLOBAL_RATE_LIMIT`, default `100` registrations per hour across all IPs (same limiter and `429` response). It still applies when a proxy hides the client IP and every request appears to come from a different address.
+- Behind a reverse proxy, configure Laravel's trusted proxies so the per-IP limit is counted per real client IP rather than per proxy.
 
 ### PKCE (not configurable)
 - The OAuth authorize endpoint only accepts `code_challenge_method=S256`, as OAuth 2.1 and the MCP authorization spec require. A `code_challenge` sent with `plain`, with any other method, or with no method (which would otherwise default to `plain`) gets `400 invalid_request`. Public clients that send no `code_challenge` are still rejected by Passport.
@@ -136,6 +138,7 @@ return [
 | `MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URIS` | `oauth.registration.max_redirect_uris` | `10` |
 | `MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URI_LENGTH` | `oauth.registration.max_redirect_uri_length` | `2048` |
 | `MCP_OAUTH_REGISTRATION_RATE_LIMIT` | `oauth.registration.rate_limit` | `10` |
+| `MCP_OAUTH_REGISTRATION_GLOBAL_RATE_LIMIT` | `oauth.registration.global_rate_limit` | `100` |
 
 ## Production checklist
 

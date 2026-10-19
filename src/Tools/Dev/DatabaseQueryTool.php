@@ -20,6 +20,11 @@ class DatabaseQueryTool extends BaseMcpTool
     protected string $description = 'Execute a single read-only SQL statement (SELECT, WITH, SHOW, EXPLAIN or DESCRIBE) against the database for data research and diagnostic purposes.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Run read-only database query';
+
+    /**
      * The tool's name.
      */
     public string $name = 'run_database_query';

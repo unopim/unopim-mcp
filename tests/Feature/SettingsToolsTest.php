@@ -171,3 +171,18 @@ it('lists only the active locales when filtered by status', function () {
     expect($codes)->toContain($active->code)
         ->not->toContain($inactive->code);
 });
+
+it('returns the locale and currency codes assigned to each channel', function () {
+    $channel = core()->getDefaultChannel();
+
+    $payload = $this->toolPayload(SettingSearchTool::class, [
+        'type' => 'channels',
+        'filters' => [['field' => 'code', 'operator' => '=', 'value' => $channel->code]],
+    ]);
+
+    $result = $payload['results'][0];
+
+    expect($result['code'])->toBe($channel->code)
+        ->and(collect($result['locales'])->sort()->values()->all())->toBe($channel->locales->pluck('code')->sort()->values()->all())
+        ->and(collect($result['currencies'])->sort()->values()->all())->toBe($channel->currencies->pluck('code')->sort()->values()->all());
+});

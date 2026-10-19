@@ -6,6 +6,7 @@ return [
         'heading' => 'Autoritza :client',
         'lede' => 'Aquesta aplicació sol·licita accés al vostre compte d\'UnoPim.',
         'signed-in-as' => 'Sessió iniciada com a',
+        'redirects-to' => 'Us redirigirà a',
         'permissions' => 'Podrà',
         'approve' => 'Autoritza',
         'approving' => 'S\'està autoritzant…',

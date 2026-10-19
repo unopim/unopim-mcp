@@ -6,6 +6,7 @@ return [
         'heading' => '승인 :client',
         'lede' => '이 애플리케이션이 UnoPim 계정에 대한 액세스를 요청하고 있습니다.',
         'signed-in-as' => '로그인한 계정',
+        'redirects-to' => '리디렉션 대상',
         'permissions' => '다음 작업을 수행할 수 있습니다',
         'approve' => '승인',
         'approving' => '승인 중…',

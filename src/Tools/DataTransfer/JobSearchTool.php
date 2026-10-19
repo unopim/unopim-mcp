@@ -22,6 +22,11 @@ class JobSearchTool extends BaseMcpTool
     protected string $description = 'Search for import/export job instances in UnoPim using generic filters and pagination. Each job includes its latest_execution (id, state, started_at, completed_at, or null if it never ran); pass latest_execution.id to get_job_execution for row counts and errors. latest_execution is omitted when the caller lacks job tracker access.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Search import and export jobs';
+
+    /**
      * The tool's name.
      */
     public string $name = 'search_jobs';

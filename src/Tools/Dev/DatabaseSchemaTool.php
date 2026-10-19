@@ -18,6 +18,11 @@ class DatabaseSchemaTool extends BaseMcpTool
     protected string $description = 'Retrieve the schema information for database tables to understand the data structure.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Get database schema';
+
+    /**
      * The tool's name.
      */
     public string $name = 'get_database_schema';

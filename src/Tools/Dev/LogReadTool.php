@@ -17,6 +17,11 @@ class LogReadTool extends BaseMcpTool
     protected string $description = 'Read the most recent entries from the UnoPim application logs for diagnostic purposes.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Read application logs';
+
+    /**
      * The tool's name.
      */
     public string $name = 'read_logs';

@@ -6,6 +6,7 @@ return [
         'heading' => 'Valtuuta :client',
         'lede' => 'Tämä sovellus pyytää pääsyä UnoPim-tiliisi.',
         'signed-in-as' => 'Kirjautuneena käyttäjänä',
+        'redirects-to' => 'Ohjaa osoitteeseen',
         'permissions' => 'Se pystyy',
         'approve' => 'Valtuuta',
         'approving' => 'Valtuutetaan…',

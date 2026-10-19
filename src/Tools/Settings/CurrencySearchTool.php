@@ -19,6 +19,11 @@ class CurrencySearchTool extends BaseMcpTool
     protected string $description = 'Search for currencies in UnoPim using generic filters and pagination.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Search currencies';
+
+    /**
      * The tool's name.
      */
     public string $name = 'search_currencies';

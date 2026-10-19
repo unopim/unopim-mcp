@@ -21,6 +21,11 @@ class AttributeGroupUpsertTool extends BaseMcpTool
     protected string $description = 'Create or update one or more attribute groups in UnoPim catalog. Automatically determines create vs update based on code existence.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Create or update attribute groups';
+
+    /**
      * The tool's name.
      */
     public string $name = 'upsert_attribute_groups';

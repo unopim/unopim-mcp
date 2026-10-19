@@ -20,6 +20,11 @@ class RunSkillTool extends BaseMcpTool
     protected string $description = 'Load a skill from .ai/skills by name or tool key and return its instructions together with the provided input.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Run skill';
+
+    /**
      * The tool's name.
      */
     public string $name = 'run_skill';

@@ -26,6 +26,11 @@ class AttributeUpsertTool extends BaseMcpTool
     protected string $description = 'Create or update one or more product attributes in the UnoPim catalog. Automatically handles create vs update based on code existence.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Create or update attributes';
+
+    /**
      * The tool's name.
      */
     public string $name = 'upsert_attributes';

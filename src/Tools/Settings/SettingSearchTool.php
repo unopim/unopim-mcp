@@ -3,6 +3,7 @@
 namespace Webkul\MCP\Tools\Settings;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Database\Eloquent\Model;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
@@ -17,7 +18,12 @@ class SettingSearchTool extends BaseMcpTool
     /**
      * The tool's description.
      */
-    protected string $description = 'Search for settings (Channels or Locales) in UnoPim using generic filters and pagination.';
+    protected string $description = 'Search for settings (Channels or Locales) in UnoPim using generic filters and pagination. Each channel lists the codes of the locales and currencies assigned to it.';
+
+    /**
+     * The tool's title.
+     */
+    protected string $title = 'Search channels and locales';
 
     /**
      * The tool's name.
@@ -44,6 +50,10 @@ class SettingSearchTool extends BaseMcpTool
 
         $query = $repository->getModel()->query();
 
+        if ($type === 'channels') {
+            $query->with(['locales:locales.id,locales.code', 'currencies:currencies.id,currencies.code']);
+        }
+
         if (! empty($validated['filters'])) {
             $this->queryBuilder->applyFilters($query, $validated['filters']);
         }
@@ -59,7 +69,24 @@ class SettingSearchTool extends BaseMcpTool
             'count' => $paginator->count(),
             'next_cursor' => $paginator->nextCursor()?->encode(),
             'has_more' => $paginator->hasMorePages(),
-            'results' => $paginator->map(fn ($item) => $item->toArray())->values()->all(),
+            'results' => $paginator->map(fn (Model $item) => $this->present($type, $item))->values()->all(),
+        ]);
+    }
+
+    /**
+     * Present a setting, replacing a channel's locale and currency records with their codes.
+     *
+     * @return array<string, mixed>
+     */
+    protected function present(string $type, Model $item): array
+    {
+        if ($type !== 'channels') {
+            return $item->toArray();
+        }
+
+        return array_merge($item->toArray(), [
+            'locales' => $item->locales->pluck('code')->values()->all(),
+            'currencies' => $item->currencies->pluck('code')->values()->all(),
         ]);
     }
 

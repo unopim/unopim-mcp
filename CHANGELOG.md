@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+- The OAuth consent screen shows the host the authorization code is sent to, so a client registered under a borrowed name such as "Claude" cannot hide where it redirects.
+- Dynamic client registration (`oauth/register`) also has an hourly cap across all IPs (`MCP_OAUTH_REGISTRATION_GLOBAL_RATE_LIMIT`, default `100`), which holds when a proxy hides the client IP.
+
+### Fixed
+- `search_settings` returns the codes of the locales and currencies assigned to each channel.
+- Every tool has a readable title (for example "Get product" instead of "Product Get Tool"); dynamic skill tools are titled after their skill.
+
 ## [1.0.5] - 2026-10-16
 
 ### Fixed

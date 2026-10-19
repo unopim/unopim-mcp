@@ -39,6 +39,11 @@ class ProductUpsertTool extends BaseMcpTool
     protected string $description = 'Create or update one or more products in the UnoPim catalog. Automatically determines create vs update based on SKU existence. Supports configurable products (super_attributes) and their variants (parent_sku). Each attribute value goes in the values section that matches the attribute\'s value_per_locale and value_per_channel flags (see search_attributes). The batch is all-or-nothing: an error names the failing item as products.{index} and its SKU.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Create or update products';
+
+    /**
      * The tool's name.
      */
     public string $name = 'upsert_products';

@@ -6,6 +6,7 @@ return [
         'heading' => '承認 :client',
         'lede' => 'このアプリケーションがあなたのUnoPimアカウントへのアクセスを求めています。',
         'signed-in-as' => 'ログイン中のアカウント',
+        'redirects-to' => 'リダイレクト先',
         'permissions' => '次の操作が可能になります',
         'approve' => '承認',
         'approving' => '承認しています…',

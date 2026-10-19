@@ -29,6 +29,11 @@ class SettingUpsertTool extends BaseMcpTool
     protected string $description = 'Create or update one or more settings (Channels or Locales) in UnoPim. Automatically determines create vs update based on code existence. A new channel needs root_category_id, locales and currencies; an update only changes the fields you send.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Create or update channels and locales';
+
+    /**
      * The tool's name.
      */
     public string $name = 'upsert_settings';

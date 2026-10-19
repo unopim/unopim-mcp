@@ -6,6 +6,7 @@ return [
         'heading' => 'Otorisasi :client',
         'lede' => 'Aplikasi ini meminta akses ke akun UnoPim Anda.',
         'signed-in-as' => 'Masuk sebagai',
+        'redirects-to' => 'Mengalihkan ke',
         'permissions' => 'Aplikasi ini akan dapat',
         'approve' => 'Otorisasi',
         'approving' => 'Mengotorisasi…',

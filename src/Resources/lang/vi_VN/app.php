@@ -6,6 +6,7 @@ return [
         'heading' => 'Cho phép :client',
         'lede' => 'Ứng dụng này đang yêu cầu quyền truy cập vào tài khoản UnoPim của bạn.',
         'signed-in-as' => 'Đã đăng nhập với tên',
+        'redirects-to' => 'Chuyển hướng đến',
         'permissions' => 'Ứng dụng sẽ có thể',
         'approve' => 'Cho phép',
         'approving' => 'Đang cho phép…',

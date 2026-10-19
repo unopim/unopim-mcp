@@ -6,6 +6,7 @@ return [
         'heading' => 'Godkänn :client',
         'lede' => 'Det här programmet begär åtkomst till ditt UnoPim-konto.',
         'signed-in-as' => 'Inloggad som',
+        'redirects-to' => 'Skickar dig vidare till',
         'permissions' => 'Det kommer att kunna',
         'approve' => 'Godkänn',
         'approving' => 'Godkänner…',

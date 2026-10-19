@@ -6,6 +6,7 @@ return [
         'heading' => 'تفويض :client',
         'lede' => 'يطلب هذا التطبيق الوصول إلى حسابك في UnoPim.',
         'signed-in-as' => 'تم تسجيل الدخول باسم',
+        'redirects-to' => 'سيعيد توجيهك إلى',
         'permissions' => 'سيتمكن من',
         'approve' => 'تفويض',
         'approving' => 'جارٍ التفويض…',

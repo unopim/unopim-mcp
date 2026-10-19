@@ -6,6 +6,7 @@ return [
         'heading' => 'Pahintulutan :client',
         'lede' => 'Humihiling ang application na ito ng access sa iyong UnoPim account.',
         'signed-in-as' => 'Naka-sign in bilang',
+        'redirects-to' => 'Ire-redirect ka sa',
         'permissions' => 'Magagawa nitong',
         'approve' => 'Pahintulutan',
         'approving' => 'Pinahihintulutan…',

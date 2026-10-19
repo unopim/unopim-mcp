@@ -19,6 +19,11 @@ class CategorySearchTool extends BaseMcpTool
     protected string $description = 'Search for categories in the UnoPim catalog using generic filters and pagination.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Search categories';
+
+    /**
      * The tool's name.
      */
     public string $name = 'search_categories';

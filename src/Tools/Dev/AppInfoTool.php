@@ -17,6 +17,11 @@ class AppInfoTool extends BaseMcpTool
     protected string $description = 'Retrieve technical information about the UnoPim application, including versions and installed packages.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Get application info';
+
+    /**
      * The tool's name.
      */
     public string $name = 'get_app_info';

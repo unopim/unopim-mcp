@@ -98,7 +98,8 @@ return [
     |
     | Caps applied to the dynamic client registration endpoint (oauth/register):
     | the request body size in bytes, the number and length of redirect URIs,
-    | and the registrations allowed per minute from a single IP address.
+    | the registrations allowed per minute from a single IP address, and the
+    | registrations allowed per hour across all IP addresses.
     |
     */
     'oauth' => [
@@ -107,6 +108,7 @@ return [
             'max_redirect_uris' => env('MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URIS', 10),
             'max_redirect_uri_length' => env('MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URI_LENGTH', 2048),
             'rate_limit' => env('MCP_OAUTH_REGISTRATION_RATE_LIMIT', 10),
+            'global_rate_limit' => env('MCP_OAUTH_REGISTRATION_GLOBAL_RATE_LIMIT', 100),
         ],
     ],
 ];

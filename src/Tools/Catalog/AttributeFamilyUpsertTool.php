@@ -24,6 +24,11 @@ class AttributeFamilyUpsertTool extends BaseMcpTool
     protected string $description = 'Create or update one or more attribute families in UnoPim catalog. Automatically determines create vs update based on code existence. Attribute groups and attributes can be added to a family; existing assignments are never removed.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Create or update attribute families';
+
+    /**
      * The tool's name.
      */
     public string $name = 'upsert_families';

@@ -53,6 +53,18 @@
                     </span>
                 </div>
 
+                @if ($redirectHost = parse_url((string) $request->input('redirect_uri'), PHP_URL_HOST))
+                    <div class="mb-6 rounded-lg border border-gray-100 dark:border-cherry-700 bg-gray-50 dark:bg-cherry-900 p-3">
+                        <span class="block text-xs text-gray-500 dark:text-gray-400">
+                            @lang('mcp::app.authorize.redirects-to')
+                        </span>
+
+                        <span class="block break-all font-medium text-gray-800 dark:text-white">
+                            {{ $redirectHost }}
+                        </span>
+                    </div>
+                @endif
+
                 @if (count($scopes) > 0)
                     <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                         @lang('mcp::app.authorize.permissions')

@@ -20,6 +20,11 @@ class CatalogSchemaTool extends BaseMcpTool
     protected string $description = 'Retrieve the UnoPim catalog schema: the filter fields each search tool accepts, the operators and the pagination rules.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Get catalog schema';
+
+    /**
      * The tool's name.
      */
     public string $name = 'get_catalog_schema';

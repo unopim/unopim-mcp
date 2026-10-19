@@ -138,15 +138,24 @@ class MCPServiceProvider extends ServiceProvider
 
     /**
      * Throttle and cap the dynamic client registration endpoint laravel/mcp registers unguarded.
+     *
+     * The hourly global cap holds even when a proxy hides the client IP and every request appears to come from a different address.
      */
     protected function guardClientRegistration(): void
     {
-        RateLimiter::for('mcp-oauth-register', fn (Request $request) => Limit::perMinute((int) config('mcp.oauth.registration.rate_limit', 10))
-            ->by($request->ip())
-            ->response(fn (Request $request, array $headers) => response()->json([
-                'error' => 'too_many_requests',
-                'error_description' => trans('mcp::app.oauth.registration.rate-limited'),
-            ], 429, $headers)));
+        $rejection = fn (Request $request, array $headers) => response()->json([
+            'error' => 'too_many_requests',
+            'error_description' => trans('mcp::app.oauth.registration.rate-limited'),
+        ], 429, $headers);
+
+        RateLimiter::for('mcp-oauth-register', fn (Request $request) => [
+            Limit::perMinute((int) config('mcp.oauth.registration.rate_limit', 10))
+                ->by($request->ip())
+                ->response($rejection),
+            Limit::perHour((int) config('mcp.oauth.registration.global_rate_limit', 100))
+                ->by('global')
+                ->response($rejection),
+        ]);
 
         foreach (Route::getRoutes()->get('POST') as $route) {
             if ($route->uri() === 'oauth/register') {

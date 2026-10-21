@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Read-only DAM tools `search_assets`, `get_asset` and `browse_asset_directories`, registered only when the optional `unopim/dam` package is installed. They require the DAM permissions `dam.asset`, `dam.asset.view` and `dam.directory`, follow the DAM's per-role directory limits, and `get_asset` returns a 10-minute download URL only to callers with `dam.asset.download`.
+
 ## [1.0.6] - 2026-10-19
 
 ### Security

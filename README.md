@@ -206,7 +206,7 @@ Something not connecting? See [Troubleshooting](docs/troubleshooting.md).
 
 ## What it can do
 
-25 tools, grouped below. Every tool and parameter is in the [Tool Reference](docs/tool-reference.md).
+25 tools, plus 3 read-only DAM tools when [unopim/dam](https://github.com/unopim/unopim-digital-asset-management) is installed, grouped below. Every tool and parameter is in the [Tool Reference](docs/tool-reference.md).
 
 | Area | Tools | UnoPim permission |
 |---|---|---|
@@ -216,6 +216,7 @@ Something not connecting? See [Troubleshooting](docs/troubleshooting.md).
 | **Schema** | `get_catalog_schema` — the fields and filters each entity supports | `catalog` |
 | **Settings** | `search_settings`, `upsert_settings` (channels and locales), `search_currencies`, `upsert_currencies` | `settings`, `settings.channels`, `settings.locales`, `settings.currencies` |
 | **Imports & exports** | `search_jobs`, `get_job_execution` | `data_transfer` |
+| **Assets (DAM)** | `search_assets`, `get_asset`, `browse_asset_directories` — only when `unopim/dam` is installed | `dam.asset`, `dam.asset.view`, `dam.directory` |
 | **Developer** | `dev_tools` (files, Artisan/Composer, plugin and test scaffolding), `run_skill`, `get_app_info`, `get_database_schema`, `run_database_query` (read-only), `read_logs` | Full access role |
 
 Upserts need `.create` to add a record and `.edit` to change an existing one, for example `catalog.products.create` and `catalog.products.edit`; a batch that does both needs both. The [Tool Reference](docs/tool-reference.md#permission-mapping) lists each one.

@@ -190,6 +190,46 @@ it('reports an asset outside the directories a restricted role may open as not f
         ->assertHasErrors([trans('mcp::app.tools.get-asset.not-found', ['id' => $asset->id])]);
 });
 
+it('gets an asset in a granted directory for a restricted role', function () {
+    $granted = Directory::factory()->create(['name' => 'mcp-get-allowed']);
+
+    $asset = damAsset($granted, ['file_name' => 'mcp-get-allowed.jpg']);
+
+    actingAsDamAdmin('custom', ['dam', 'dam.asset', 'dam.asset.view'], [$granted->id]);
+
+    $payload = $this->toolPayload(AssetGetTool::class, ['id' => $asset->id]);
+
+    expect($payload['id'])->toBe($asset->id)
+        ->and($payload['directories'])->toBe([['id' => $granted->id, 'name' => 'mcp-get-allowed']]);
+});
+
+it('hides the other directories of an asset that is also in a hidden one', function () {
+    $granted = Directory::factory()->create(['name' => 'mcp-multi-granted']);
+    $hidden = Directory::factory()->create(['name' => 'mcp-multi-hidden']);
+
+    $asset = damAsset($granted);
+    $asset->directories()->attach($hidden->id);
+
+    actingAsDamAdmin('custom', ['dam', 'dam.asset', 'dam.asset.view'], [$granted->id]);
+
+    $payload = $this->toolPayload(AssetGetTool::class, ['id' => $asset->id]);
+
+    expect($payload['directories'])->toBe([['id' => $granted->id, 'name' => 'mcp-multi-granted']])
+        ->and(damAssetIds($this->toolPayload(AssetSearchTool::class, ['directory_id' => $granted->id])))->toBe([$asset->id])
+        ->and(damAssetIds($this->toolPayload(AssetSearchTool::class, ['directory_id' => $hidden->id])))->toBe([]);
+});
+
+it('shows a role without granted directories no assets and no directories', function () {
+    $directory = Directory::factory()->create(['name' => 'mcp-none-granted']);
+
+    damAsset($directory);
+
+    actingAsDamAdmin('custom', ['dam', 'dam.asset', 'dam.directory'], []);
+
+    expect($this->toolPayload(AssetSearchTool::class)['assets'])->toBe([])
+        ->and($this->toolPayload(DirectoryTreeTool::class)['directories'])->toBe([]);
+});
+
 it('rejects an asset id outside the integer column range before querying', function () {
     UnoPimAgentServer::tool(AssetGetTool::class, ['id' => PHP_INT_MAX])
         ->assertHasErrors([trans('validation.max.numeric', ['attribute' => 'id', 'max' => 2147483647])]);

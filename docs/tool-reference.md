@@ -145,6 +145,8 @@ Fetch a single job execution (JobTrack) by ID (an integer from 1 to 2147483647),
 
 Registered only when the optional [unopim/dam](https://github.com/unopim/unopim-digital-asset-management) package is installed (`Webkul\DAM\Models\Asset` exists); without it these tools are not listed. All three are read-only. A role that the DAM limits to some directories gets the same limit here: assets outside its directories are left out of `search_assets` and reported as not found by `get_asset`, and `browse_asset_directories` shows only its directories and the directories above them.
 
+An asset in several directories counts as accessible when any of them is, the rule the DAM's asset grid uses; `get_asset` then lists only the accessible ones, and `search_assets` `directory_id` only matches an accessible directory. The DAM's own REST download endpoint is stricter: it checks only the asset's first directory, so `get_asset` can return a `download_url` for an asset whose REST download would be refused.
+
 ### `search_assets`
 Search DAM assets with generic filters and pagination. Each asset includes `id`, `file_name`, `file_type`, `mime_type`, `file_size` and `path`.
 

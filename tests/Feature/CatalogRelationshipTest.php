@@ -15,13 +15,13 @@ it('creates related products and retrieves relationships', function () {
     UnoPimAgentServer::tool(ProductUpsertTool::class, [
         'products' => [
             [
-                'sku'                 => $sku1,
-                'type'                => 'simple',
+                'sku' => $sku1,
+                'type' => 'simple',
                 'attribute_family_id' => $family->id,
             ],
             [
-                'sku'                 => $sku2,
-                'type'                => 'simple',
+                'sku' => $sku2,
+                'type' => 'simple',
                 'attribute_family_id' => $family->id,
             ],
         ],
@@ -50,4 +50,15 @@ it('retrieves product completeness via get_product', function () {
     ])->assertOk()->assertSee('completeness');
 
     Product::where('sku', $sku)->delete();
+});
+
+it('finds a product by numeric id as well as by sku', function () {
+    $family = AttributeFamily::first() ?? AttributeFamily::factory()->create();
+    $product = Product::factory()->create(['sku' => 'BYID-'.uniqid(), 'attribute_family_id' => $family->id]);
+
+    UnoPimAgentServer::tool(ProductGetTool::class, ['identifier' => (string) $product->id])
+        ->assertOk()->assertSee($product->sku);
+
+    UnoPimAgentServer::tool(ProductGetTool::class, ['identifier' => $product->sku])
+        ->assertOk()->assertSee($product->sku);
 });

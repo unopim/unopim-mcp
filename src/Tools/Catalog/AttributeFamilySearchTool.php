@@ -5,16 +5,23 @@ namespace Webkul\MCP\Tools\Catalog;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\Attribute\Repositories\AttributeFamilyRepository;
-use Webkul\MCP\Tools\BaseMcpTool;
 use Webkul\MCP\Services\UnoPimQueryBuilder;
+use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsReadOnly]
 class AttributeFamilySearchTool extends BaseMcpTool
 {
     /**
      * The tool's description.
      */
     protected string $description = 'Search for attribute families in the UnoPim catalog using generic filters and pagination.';
+
+    /**
+     * The tool's title.
+     */
+    protected string $title = 'Search attribute families';
 
     /**
      * The tool's name.
@@ -30,8 +37,8 @@ class AttributeFamilySearchTool extends BaseMcpTool
     {
         $validated = $request->validate([
             'filters' => ['nullable', 'array'],
-            'limit'   => ['nullable', 'integer', 'min:1', 'max:100'],
-            'cursor'  => ['nullable', 'string'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'cursor' => ['nullable', 'string'],
         ]);
 
         $query = $this->familyRepository->getModel()->query();
@@ -47,11 +54,11 @@ class AttributeFamilySearchTool extends BaseMcpTool
         );
 
         return Response::json([
-            'count'       => $paginator->count(),
+            'count' => $paginator->count(),
             'next_cursor' => $paginator->nextCursor()?->encode(),
-            'has_more'    => $paginator->hasMorePages(),
-            'families'    => $paginator->map(fn ($f) => [
-                'id'   => $f->id,
+            'has_more' => $paginator->hasMorePages(),
+            'families' => $paginator->map(fn ($f) => [
+                'id' => $f->id,
                 'code' => $f->code,
                 'name' => $f->name,
             ])->values()->all(),
@@ -64,15 +71,11 @@ class AttributeFamilySearchTool extends BaseMcpTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'filters' => $schema->array()
-                ->description('List of filters: [{field, operator, value}].')
-                ->items(
-                    $schema->object([
-                        'field'    => $schema->string()->description('The field to filter by (e.g., code, name).'),
-                        'operator' => $schema->string()->description('The comparison operator.'),
-                        'value'    => $schema->string()->description('The value to compare against.'),
-                    ])
-                ),
+            'filters' => $this->filtersSchema(
+                $schema,
+                'List of filters: [{field, operator, value}].',
+                'The field to filter by (e.g. id, code, status, name).',
+            ),
             'limit' => $schema->integer()
                 ->description('Number of results per page.')
                 ->default(25),

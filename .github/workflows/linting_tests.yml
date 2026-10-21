@@ -1,0 +1,30 @@
+name: Linting Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  linting_tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    name: Laravel Pint Code Style
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Running Pint Test
+        uses: aglipanci/laravel-pint-action@2.3.1
+        with:
+          testMode: true
+          verboseMode: true

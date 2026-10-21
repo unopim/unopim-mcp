@@ -45,8 +45,8 @@ class PluginMakeCommand extends Command
 
         return match ($action) {
             'plugin' => $this->makePlugin(),
-            'test'   => $this->makeTest(),
-            default  => $this->invalidAction($action),
+            'test' => $this->makeTest(),
+            default => $this->invalidAction($action),
         };
     }
 

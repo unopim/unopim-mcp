@@ -15,10 +15,17 @@ class PluginGenerator
      * Generate a full UnoPim plugin structure.
      *
      * @return array{name: string, path: string, message: string, files: list<string>}
+     *
+     * @throws \InvalidArgumentException when the name is not a valid StudlyCase package name.
      */
     public function generate(string $name, string $type = 'connector'): array
     {
         $name = Str::studly($name);
+
+        if (! preg_match('/^[A-Z][A-Za-z0-9]*$/', $name)) {
+            throw new \InvalidArgumentException(trans('mcp::app.dev.plugin-generator.invalid-name', ['name' => $name]));
+        }
+
         $basePath = "packages/Webkul/{$name}";
 
         if (File::exists(base_path($basePath))) {
@@ -34,10 +41,10 @@ class PluginGenerator
         }
 
         return [
-            'name'    => $name,
-            'path'    => $basePath,
+            'name' => $name,
+            'path' => $basePath,
             'message' => "Plugin [{$name}] ({$type}) generated successfully.",
-            'files'   => $created,
+            'files' => $created,
         ];
     }
 
@@ -53,10 +60,10 @@ class PluginGenerator
         $snake = Str::snake($name);
 
         return match ($type) {
-            'connector'      => $this->buildConnectorStubs($name, $lower, $kebab, $snake),
+            'connector' => $this->buildConnectorStubs($name, $lower, $kebab, $snake),
             'core-extension' => $this->buildCoreExtensionStubs($name, $lower, $kebab, $snake),
-            'generic'        => $this->buildGenericStubs($name, $lower, $kebab, $snake),
-            default          => throw new \InvalidArgumentException("Unsupported plugin type: {$type}"),
+            'generic' => $this->buildGenericStubs($name, $lower, $kebab, $snake),
+            default => throw new \InvalidArgumentException("Unsupported plugin type: {$type}"),
         };
     }
 
@@ -67,10 +74,10 @@ class PluginGenerator
             'composer.json' => $this->stubComposer($name, $lower, "UnoPim {$name} Connector Plugin"),
 
             // Config
-            'src/Config/acl.php'             => $this->stubAcl($name, $kebab),
-            'src/Config/menu.php'            => $this->stubMenu($name, $kebab),
-            'src/Config/importers.php'       => "<?php\n\nreturn [];\n",
-            'src/Config/exporters.php'       => "<?php\n\nreturn [];\n",
+            'src/Config/acl.php' => $this->stubAcl($name, $kebab),
+            'src/Config/menu.php' => $this->stubMenu($name, $kebab),
+            'src/Config/importers.php' => "<?php\n\nreturn [];\n",
+            'src/Config/exporters.php' => "<?php\n\nreturn [];\n",
             'src/Config/quick_exporters.php' => "<?php\n\nreturn [];\n",
 
             // Contracts
@@ -78,10 +85,10 @@ class PluginGenerator
 
             // Providers
             "src/Providers/{$name}ServiceProvider.php" => $this->stubServiceProvider($name, $snake, $kebab, true),
-            'src/Providers/ModuleServiceProvider.php'  => $this->stubModuleServiceProvider($name),
+            'src/Providers/ModuleServiceProvider.php' => $this->stubModuleServiceProvider($name),
 
             // Models
-            'src/Models/Credential.php'      => $this->stubCredentialModel($name, $snake),
+            'src/Models/Credential.php' => $this->stubCredentialModel($name, $snake),
             'src/Models/CredentialProxy.php' => $this->stubCredentialProxy($name),
 
             // Repositories
@@ -113,18 +120,18 @@ class PluginGenerator
     protected function buildCoreExtensionStubs(string $name, string $lower, string $kebab, string $snake): array
     {
         return [
-            'composer.json'                            => $this->stubComposer($name, $lower, "UnoPim {$name} Core Extension"),
+            'composer.json' => $this->stubComposer($name, $lower, "UnoPim {$name} Core Extension"),
             "src/Providers/{$name}ServiceProvider.php" => $this->stubServiceProvider($name, $snake, $kebab, false),
-            'src/Resources/lang/en/app.php'            => "<?php\n\nreturn [];\n",
-            'src/Config/acl.php'                       => "<?php\n\nreturn [];\n",
-            'src/Config/menu.php'                      => "<?php\n\nreturn [];\n",
+            'src/Resources/lang/en/app.php' => "<?php\n\nreturn [];\n",
+            'src/Config/acl.php' => "<?php\n\nreturn [];\n",
+            'src/Config/menu.php' => "<?php\n\nreturn [];\n",
         ];
     }
 
     protected function buildGenericStubs(string $name, string $lower, string $kebab, string $snake): array
     {
         return [
-            'composer.json'                            => $this->stubComposer($name, $lower, "UnoPim {$name} Package"),
+            'composer.json' => $this->stubComposer($name, $lower, "UnoPim {$name} Package"),
             "src/Providers/{$name}ServiceProvider.php" => $this->stubServiceProvider($name, $snake, $kebab, false, false),
         ];
     }
@@ -134,11 +141,11 @@ class PluginGenerator
     protected function stubComposer(string $name, string $lower, string $description): string
     {
         return json_encode([
-            'name'        => "webkul/{$lower}",
+            'name' => "webkul/{$lower}",
             'description' => $description,
-            'type'        => 'laravel-library',
-            'require'     => ['php' => '^8.2'],
-            'autoload'    => [
+            'type' => 'laravel-library',
+            'require' => ['php' => '^8.2'],
+            'autoload' => [
                 'psr-4' => ["Webkul\\{$name}\\" => 'src/'],
             ],
             'extra' => [
@@ -154,7 +161,7 @@ class PluginGenerator
                 ],
             ],
             'minimum-stability' => 'dev',
-            'prefer-stable'     => true,
+            'prefer-stable' => true,
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 

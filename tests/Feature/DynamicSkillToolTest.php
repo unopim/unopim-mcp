@@ -8,9 +8,9 @@ use Webkul\MCP\Tools\Dev\DynamicSkillTool;
 
 it('creates a dynamic skill tool with correct name', function () {
     $skillData = [
-        'name'        => 'test-skill',
+        'name' => 'test-skill',
         'description' => 'A test skill for automation.',
-        'content'     => "# Test Skill Content\n\nThese are instructions.",
+        'content' => "# Test Skill Content\n\nThese are instructions.",
     ];
 
     $tool = new DynamicSkillTool($skillData);
@@ -51,4 +51,19 @@ it('loads dynamic skills from filesystem via SkillLoader', function () {
     expect($tool->name())->toBe('execute_my_skill');
 
     File::deleteDirectory($tempDir);
+});
+
+it('exposes a valid mcp tool name for a skill name with spaces and punctuation', function () {
+    $loader = new SkillLoader(new SkillParser);
+    $name = 'Product Import: CSV & Excel (v2)';
+
+    $tool = new DynamicSkillTool(['name' => $name, 'tool_key' => $loader->normalizeToolName($name)]);
+
+    expect($tool->name())->toMatch('/^[a-zA-Z0-9_-]{1,64}$/');
+});
+
+it('keeps a very long skill name within the 64 character tool name limit', function () {
+    $tool = new DynamicSkillTool(['name' => str_repeat('very long skill name ', 10)]);
+
+    expect($tool->name())->toMatch('/^[a-zA-Z0-9_-]{1,64}$/');
 });

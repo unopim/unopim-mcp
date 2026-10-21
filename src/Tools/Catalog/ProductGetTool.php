@@ -5,15 +5,22 @@ namespace Webkul\MCP\Tools\Catalog;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\MCP\Tools\BaseMcpTool;
 use Webkul\Product\Repositories\ProductRepository;
 
+#[IsReadOnly]
 class ProductGetTool extends BaseMcpTool
 {
     /**
      * The tool's description.
      */
     protected string $description = 'Retrieve full details for a specific product by its identifier (ID or SKU).';
+
+    /**
+     * The tool's title.
+     */
+    protected string $title = 'Get product';
 
     /**
      * The tool's name.
@@ -27,14 +34,16 @@ class ProductGetTool extends BaseMcpTool
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
-            'identifier' => ['required', 'string'],
+            'identifier' => ['required', is_int($request->get('identifier')) ? 'integer' : 'string'],
         ]);
 
-        $identifier = $validated['identifier'];
+        $identifier = (string) $validated['identifier'];
 
-        $product = $this->productRepository->where('id', $identifier)
-            ->orWhere('sku', $identifier)
-            ->first();
+        $product = $this->productRepository->findOneByField('sku', $identifier);
+
+        if (! $product && ctype_digit($identifier)) {
+            $product = $this->productRepository->find((int) $identifier);
+        }
 
         if (! $product) {
             return Response::error("Product with identifier '{$identifier}' not found.");
@@ -49,21 +58,21 @@ class ProductGetTool extends BaseMcpTool
         ]);
 
         return Response::json([
-            'id'                  => $product->id,
-            'sku'                 => $product->sku,
-            'type'                => $product->type,
-            'status'              => (bool) $product->status,
-            'attribute_family'    => [
-                'id'   => $product->attribute_family?->id,
+            'id' => $product->id,
+            'sku' => $product->sku,
+            'type' => $product->type,
+            'status' => (bool) $product->status,
+            'attribute_family' => [
+                'id' => $product->attribute_family?->id,
                 'name' => $product->attribute_family?->name,
                 'code' => $product->attribute_family?->code,
             ],
-            'values'              => $product->values,
-            'completeness'        => $product->getCompletenessScore(),
-            'parent_id'           => $product->parent_id,
-            'variants'            => $product->variants->map(fn ($v) => ['id' => $v->id, 'sku' => $v->sku])->values()->all(),
-            'created_at'          => $product->created_at?->toDateTimeString(),
-            'updated_at'          => $product->updated_at?->toDateTimeString(),
+            'values' => $product->values,
+            'completeness' => $product->getCompletenessScore(),
+            'parent_id' => $product->parent_id,
+            'variants' => $product->variants->map(fn ($v) => ['id' => $v->id, 'sku' => $v->sku])->values()->all(),
+            'created_at' => $product->created_at?->toDateTimeString(),
+            'updated_at' => $product->updated_at?->toDateTimeString(),
         ]);
     }
 
@@ -73,8 +82,9 @@ class ProductGetTool extends BaseMcpTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'identifier' => $schema->string()
-                ->description('The product ID or SKU.'),
+            'identifier' => $this->anyOfSchema($schema, ['string', 'integer'])
+                ->description('The product SKU or numeric ID. A SKU match wins over an ID match.')
+                ->required(),
         ];
     }
 }

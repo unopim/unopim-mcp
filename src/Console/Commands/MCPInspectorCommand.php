@@ -3,7 +3,8 @@
 namespace Webkul\MCP\Console\Commands;
 
 use Illuminate\Console\Command;
-use Symfony\Component\Process\Process;
+use Illuminate\Support\Facades\Process;
+use Symfony\Component\Process\Process as SymfonyProcess;
 
 class MCPInspectorCommand extends Command
 {
@@ -63,15 +64,10 @@ class MCPInspectorCommand extends Command
             $this->info('Connecting via STDIO invoking: '.PHP_BINARY.' '.base_path('artisan')." mcp:start {$server}");
         }
 
-        // We use Symfony Process to execute the node script with TTY enabled.
-        // This allows us to intercept the terminal output and replace 'localhost' with the requested host IP.
-        $process = is_array($command) ? new Process($command) : Process::fromShellCommandline($command);
-        $process->setTimeout(null);
-
         $env = [
-            'HOST'                         => $host,
-            'PORT'                         => $port,
-            'ALLOWED_ORIGINS'              => "http://localhost:6274,http://127.0.0.1:6274,http://{$host}:6274",
+            'HOST' => $host,
+            'PORT' => $port,
+            'ALLOWED_ORIGINS' => "http://localhost:6274,http://127.0.0.1:6274,http://{$host}:6274",
             'NODE_TLS_REJECT_UNAUTHORIZED' => '0',
         ];
 
@@ -79,15 +75,9 @@ class MCPInspectorCommand extends Command
             $env['DANGEROUSLY_OMIT_AUTH'] = 'true';
         }
 
-        $process->setEnv(array_merge($_SERVER, $_ENV, $env));
-
-        if (Process::isTtySupported()) {
-            $process->setTty(true);
-        }
-
         $this->info("Starting Inspector... If you use a Cloud IDE, try --host=0.0.0.0 to fix 'Invalid origin' errors.");
 
-        $process->run(function ($type, $buffer) use ($host, $port) {
+        Process::forever()->tty(SymfonyProcess::isTtySupported())->env($env)->run($command, function (string $type, string $buffer) use ($host, $port) {
             // Intercept the stream and rewrite localhost to the actual IP requested.
             // This ensures tokens and proxy URLs are clickable in the terminal.
             $buffer = str_replace('localhost', $host, $buffer);

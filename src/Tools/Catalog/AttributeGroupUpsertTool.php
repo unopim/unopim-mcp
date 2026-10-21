@@ -6,15 +6,24 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
+use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Webkul\Attribute\Repositories\AttributeGroupRepository;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsDestructive]
+#[IsIdempotent]
 class AttributeGroupUpsertTool extends BaseMcpTool
 {
     /**
      * The tool's description.
      */
     protected string $description = 'Create or update one or more attribute groups in UnoPim catalog. Automatically determines create vs update based on code existence.';
+
+    /**
+     * The tool's title.
+     */
+    protected string $title = 'Create or update attribute groups';
 
     /**
      * The tool's name.
@@ -58,7 +67,8 @@ class AttributeGroupUpsertTool extends BaseMcpTool
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
-            return Response::error($e->getMessage());
+
+            throw $e;
         }
     }
 

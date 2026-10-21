@@ -6,6 +6,7 @@ use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Contracts\Transport;
 use Laravel\Mcp\Server\Prompt;
 use Laravel\Mcp\Server\Tool;
+use Laravel\Mcp\Server\Transport\HttpTransport;
 use Webkul\MCP\Prompts\Catalog\CatalogAnalysisPrompt;
 use Webkul\MCP\Registry\ToolRegistry;
 use Webkul\MCP\Resources\Catalog\CatalogSchemaResource;
@@ -23,30 +24,45 @@ class UnoPimAgentServer extends Server
     /**
      * The version of the MCP server.
      */
-    protected string $version = '1.0.0';
+    protected string $version = '1.0.6';
 
     /**
      * The instructions for AI clients connecting to this server.
      */
     protected string $instructions = <<<'MARKDOWN'
-        This MCP server connects AI coding assistants directly into the UnoPim PIM platform.
+    This MCP server connects AI assistants directly to the UnoPim PIM platform.
 
-        ### Capabilities
-        - **Catalog Discovery**: Use `get_catalog_schema` to understand filterable fields, operators, and pagination rules.
-        - **Product Management**: Use `search_products` to find products, `get_product` for details, and `upsert_products` to create/update (batch up to 50).
-        - **Category Management**: Use `search_categories` to browse and `upsert_categories` to create/update categories.
-        - **Attribute Management**: Use `search_attributes` to explore attributes and `upsert_attributes` to create/update them.
-        - **Settings Management**: Use `search_settings` and `upsert_settings` to manage channels and locales.
-        - **Developer Tools**: Use `dev_tools` for file management, command execution, and code generation. Use `run_skill` to execute predefined development skills.
-        - **Dynamic Skills**: Custom skills loaded from `.ai/skills/` are registered as additional tools.
+    ### Capabilities
+    - **Catalog Discovery**: Use `get_catalog_schema` to understand filterable fields, operators, and pagination rules.
+    - **Product Management**: Use `search_products` to find products, `get_product` for details, and `upsert_products` to create/update (batch up to 50).
+    - **Category Management**: Use `search_categories` to browse and `upsert_categories` to create/update categories.
+    - **Attribute Management**: Use `search_attributes` to explore attributes, `upsert_attributes` to create/update them, and `search_attribute_options` to list the options of a select/multiselect attribute.
+    - **Family & Group Management**: Use `search_families` / `upsert_families` for attribute families, and `search_attribute_groups` / `upsert_attribute_groups` for the groups that organise attributes within a family.
+    - **Settings Management**: Use `search_settings` and `upsert_settings` to manage channels and locales, and `search_currencies` / `upsert_currencies` to manage currencies.
+    - **Data Transfer**: Use `search_jobs` to find import/export job instances with their latest run, and pass that run's `latest_execution.id` to `get_job_execution` to inspect its status, row counts, and errors.
 
-        ### Guidelines
-        - Always start with `get_catalog_schema` to discover the catalog structure before querying.
-        - All search tools support generic filters with operators: `=`, `!=`, `IN`, `NOT IN`, `CONTAINS`, `STARTS WITH`, `ENDS WITH`, `>`, `<`.
-        - All search tools use cursor-based pagination (max 100 per page).
-        - Use `dev_tools` with action `generate_plugin` to scaffold new extensions.
-        - Use `dev_tools` with action `run_command` for artisan/composer commands.
-        - Access the `catalog-schema` resource for a high-level catalog summary.
+    ### Guidelines
+    - Use `get_catalog_schema` to learn the filterable fields and operators before building filters, `search_settings` (type `channels` or `locales`) to discover channels and locales, and `search_attributes` for attribute definitions.
+    - `search_settings` type `locales` lists every locale UnoPim ships, enabled or not; pass the filter `[{"field": "status", "operator": "=", "value": 1}]` to get only the active ones.
+    - All search tools support generic filters with operators: `=`, `!=`, `IN`, `NOT IN`, `CONTAINS`, `STARTS WITH`, `ENDS WITH`, `>`, `<`.
+    - All search tools use cursor-based pagination (max 100 per page).
+    - Access the `catalog-schema` resource for a high-level catalog summary.
+    MARKDOWN;
+
+    /**
+     * Instructions appended when the developer tools are served.
+     */
+    protected string $developerInstructions = <<<'MARKDOWN'
+    ### Developer Tools
+    - **Developer Tools**: Use `dev_tools` for file management, command execution, and code generation. Use `run_skill` to execute predefined development skills.
+    - **Diagnostics**: Use `get_app_info` for Laravel/PHP versions and installed packages, `get_database_schema` to introspect tables and columns, `run_database_query` for read-only SQL, and `read_logs` to tail application logs.
+    - **Dynamic Skills**: Custom skills loaded from `.ai/skills/` are registered as additional tools.
+
+    ### Developer Guidelines
+    - Use `dev_tools` with action `generate_plugin` to scaffold new extensions.
+    - Use `dev_tools` with action `run_command` for artisan/composer commands.
+    - Prefer `get_job_execution` over `read_logs` when diagnosing a failed import or export.
+    - `run_database_query` is read-only — use the upsert tools to change catalog data.
     MARKDOWN;
 
     /**
@@ -84,7 +100,28 @@ class UnoPimAgentServer extends Server
         parent::__construct($transport);
 
         $this->tools = ToolRegistry::tools();
+
+        if (! $this->servesDeveloperTools($transport)) {
+            $this->tools = array_values(array_filter(
+                $this->tools,
+                fn ($tool): bool => ! in_array($tool, ToolRegistry::developerTools(), true),
+            ));
+
+            return;
+        }
+
+        $this->instructions .= "\n\n".$this->developerInstructions;
+
         $this->loadDynamicSkills();
+    }
+
+    /**
+     * Developer tools and dynamic skills run commands, SQL and file writes, so the
+     * remote HTTP endpoint only serves them when the installation opts in.
+     */
+    protected function servesDeveloperTools(Transport $transport): bool
+    {
+        return ! $transport instanceof HttpTransport || config('mcp.remote_developer_tools', false);
     }
 
     protected function boot(): void

@@ -1,0 +1,92 @@
+name: Translation Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  translations:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    name: Translation Integrity Audit
+
+    steps:
+      - name: Checkout MCP
+        uses: actions/checkout@v7
+        with:
+          path: mcp-package
+
+      - name: Resolve latest UnoPim release
+        id: unopim
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(gh api repos/unopim/unopim/releases/latest --jq .tag_name)
+          test -n "$tag"
+          echo "Testing against UnoPim $tag"
+          echo "ref=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout UnoPim
+        uses: actions/checkout@v7
+        with:
+          repository: unopim/unopim
+          ref: ${{ steps.unopim.outputs.ref }}
+          path: unopim
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, fileinfo, gd, intl, mbstring, openssl, pdo, pdo_mysql, pdo_pgsql, tokenizer, zip
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
+          coverage: none
+
+      - name: Copy MCP into UnoPim packages
+        run: |
+          mkdir -p unopim/packages/Webkul/MCP
+          cp -r mcp-package/src unopim/packages/Webkul/MCP/src
+          cp -r mcp-package/tests unopim/packages/Webkul/MCP/tests
+          cp mcp-package/composer.json unopim/packages/Webkul/MCP/composer.json
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            unopim/vendor
+            ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-mcp-${{ hashFiles('unopim/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-mcp-
+
+      - name: Install base dependencies
+        working-directory: unopim
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+
+      - name: Register MCP as a path repository and require it
+        working-directory: unopim
+        run: |
+          composer config repositories.mcp '{"type":"path","url":"packages/Webkul/MCP","options":{"symlink":true}}' --json
+          composer require unopim/mcp:"*@dev" --no-interaction --no-progress --prefer-dist --with-all-dependencies
+
+      - name: Prepare environment
+        working-directory: unopim
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run Translation Checker
+        working-directory: unopim
+        run: php artisan unopim:translations:check

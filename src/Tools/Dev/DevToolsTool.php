@@ -5,15 +5,24 @@ namespace Webkul\MCP\Tools\Dev;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
+use Laravel\Mcp\Server\Tools\Annotations\IsOpenWorld;
 use Webkul\MCP\Contracts\SkillExecutorInterface;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsDestructive]
+#[IsOpenWorld]
 class DevToolsTool extends BaseMcpTool
 {
     /**
      * The tool's description.
      */
     protected string $description = 'Standard developer operations: file management, command execution, and code generation.';
+
+    /**
+     * The tool's title.
+     */
+    protected string $title = 'Developer tools';
 
     /**
      * The tool's name.
@@ -36,19 +45,19 @@ class DevToolsTool extends BaseMcpTool
 
         try {
             $result = match ($action) {
-                'create_file'     => $this->skillExecutor->createFile($params['path'], $params['content']),
-                'read_file'       => $this->skillExecutor->readFile($params['path']),
-                'update_file'     => $this->skillExecutor->updateFile($params['path'], $params['content']),
-                'run_command'     => $this->skillExecutor->runCommand($params['command']),
+                'create_file' => $this->skillExecutor->createFile($params['path'], $params['content']),
+                'read_file' => $this->skillExecutor->readFile($params['path']),
+                'update_file' => $this->skillExecutor->updateFile($params['path'], $params['content']),
+                'run_command' => $this->skillExecutor->runCommand($params['command']),
                 'generate_plugin' => $this->skillExecutor->generatePlugin($params['name'], $params['type'] ?? 'connector'),
-                'generate_test'   => $this->skillExecutor->generateTest($params['package'], $params['class']),
+                'generate_test' => $this->skillExecutor->generateTest($params['package'], $params['class']),
             };
 
             return Response::json([
                 'success' => true,
-                'result'  => $result,
+                'result' => $result,
             ]);
-        } catch (\Throwable $e) {
+        } catch (\RuntimeException|\InvalidArgumentException $e) {
             return Response::error($e->getMessage());
         }
     }

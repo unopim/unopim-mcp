@@ -2,6 +2,8 @@
 
 namespace Webkul\MCP\Tools;
 
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\JsonSchema\Types\Type;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -25,8 +27,8 @@ abstract class BaseMcpTool extends Tool
         } catch (Throwable $e) {
             $errorRef = Str::random(8);
             Log::error("MCP Tool Error [{$errorRef}]: ".$e->getMessage(), [
-                'tool'  => static::class,
-                'args'  => $request->all(),
+                'tool' => static::class,
+                'args' => $request->all(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
@@ -35,7 +37,59 @@ abstract class BaseMcpTool extends Tool
     }
 
     /**
+     * Whether the current caller holds the given ACL permission; local stdio sessions are trusted.
+     */
+    protected function allows(string $permission): bool
+    {
+        if (app()->runningInConsole() && ! app()->environment('testing')) {
+            return true;
+        }
+
+        return ! function_exists('bouncer') || bouncer()->hasPermission($permission);
+    }
+
+    /**
      * The actual implementation of the tool logic.
      */
     abstract protected function execute(Request $request): Response;
+
+    /**
+     * Schema for a search tool's `filters` argument, shared so every search tool advertises the same shape.
+     */
+    protected function filtersSchema(JsonSchema $schema, string $description, string $fieldDescription): Type
+    {
+        return $schema->array()
+            ->description($description)
+            ->items(
+                $schema->object([
+                    'field' => $schema->string()->description($fieldDescription)->required(),
+                    'operator' => $schema->string()->description('The comparison operator: =, !=, IN, NOT IN, CONTAINS, STARTS WITH, ENDS WITH, >, <. Defaults to =.'),
+                    'value' => $this->anyOfSchema($schema, ['string', 'number', 'boolean', 'array'])
+                        ->description('The value to compare against. For IN and NOT IN, pass an array or a comma-separated list ("a,b").'),
+                ])
+            );
+    }
+
+    /**
+     * A schema accepting any of the given JSON types.
+     *
+     * Hosts on a framework without `anyOf` (laravel/mcp ^0.7) fall back to a string schema,
+     * which every caller still accepts.
+     *
+     * @param  array<int, string>  $types
+     */
+    protected function anyOfSchema(JsonSchema $schema, array $types): Type
+    {
+        if (! method_exists($schema, 'anyOf')) {
+            return $schema->string();
+        }
+
+        return $schema->anyOf(array_map(fn (string $name): Type => match ($name) {
+            'number' => $schema->number(),
+            'integer' => $schema->integer(),
+            'boolean' => $schema->boolean(),
+            'array' => $schema->array()->items($schema->anyOf([$schema->string(), $schema->number()])),
+            default => $schema->string(),
+        }, $types));
+    }
 }

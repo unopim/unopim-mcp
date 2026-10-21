@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Laravel\Mcp\Server\Transport\FakeTransporter;
+use Laravel\Mcp\Server\Transport\HttpTransport;
 use Webkul\MCP\Servers\UnoPimAgentServer;
 
 beforeEach(function () {
@@ -89,4 +90,95 @@ it('registers catalog analysis prompt', function () {
     $promptNames = $context->prompts()->map(fn ($p) => $p->name())->toArray();
 
     expect($promptNames)->toContain('analyze-catalog');
+});
+
+it('leaves developer tools and dynamic skills off the remote http server by default', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    $toolNames = $server->createContext()->tools()->map(fn ($t) => $t->name())->toArray();
+
+    expect($toolNames)->toContain('search_products')
+        ->not->toContain('dev_tools')
+        ->not->toContain('run_skill')
+        ->not->toContain('run_database_query')
+        ->not->toContain('read_logs')
+        ->not->toContain('get_database_schema')
+        ->not->toContain('get_app_info')
+        ->and(collect($toolNames)->filter(fn ($name) => str_starts_with($name, 'execute_')))->toBeEmpty();
+});
+
+it('serves developer tools over http when the installation opts in', function () {
+    Config::set('mcp.remote_developer_tools', true);
+
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    $toolNames = $server->createContext()->tools()->map(fn ($t) => $t->name())->toArray();
+
+    expect($toolNames)->toContain('dev_tools')->toContain('run_database_query');
+});
+
+it('leaves developer tools out of the instructions sent to remote http clients by default', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    expect($server->createContext()->instructions)
+        ->toContain('search_products')
+        ->toContain('search_settings')
+        ->not->toContain('dev_tools')
+        ->not->toContain('run_skill')
+        ->not->toContain('get_app_info')
+        ->not->toContain('get_database_schema')
+        ->not->toContain('run_database_query')
+        ->not->toContain('read_logs');
+});
+
+it('describes developer tools to remote http clients when the installation opts in', function () {
+    Config::set('mcp.remote_developer_tools', true);
+
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    expect($server->createContext()->instructions)
+        ->toContain('dev_tools')
+        ->toContain('run_database_query')
+        ->toContain('read_logs');
+});
+
+it('describes developer tools to stdio clients', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => new FakeTransporter]);
+
+    expect($server->createContext()->instructions)
+        ->toContain('dev_tools')
+        ->toContain('run_database_query')
+        ->toContain('read_logs');
+});
+
+it('points clients to the tools that actually return channels, locales and attributes', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    expect($server->createContext()->instructions)
+        ->not->toContain('Always start with `get_catalog_schema`')
+        ->toContain('search_attributes');
+});
+
+it('sends instructions without leading indentation to remote http clients', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    expect($server->createContext()->instructions)
+        ->toStartWith('This MCP server')
+        ->not->toMatch('/^[ \t]+\S/m');
+});
+
+it('sends instructions without leading indentation to stdio clients', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => new FakeTransporter]);
+
+    expect($server->createContext()->instructions)
+        ->toStartWith('This MCP server')
+        ->toContain("\n\n### Developer Tools\n")
+        ->not->toMatch('/^[ \t]+\S/m');
+});
+
+it('tells clients to filter locales to the active ones', function () {
+    $server = app(UnoPimAgentServer::class, ['transport' => $this->createStub(HttpTransport::class)]);
+
+    expect($server->createContext()->instructions)
+        ->toContain('{"field": "status", "operator": "=", "value": 1}');
 });

@@ -5,6 +5,130 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-10-19
+
+### Security
+- The OAuth consent screen shows the host the authorization code is sent to, so a client registered under a borrowed name such as "Claude" cannot hide where it redirects.
+- Dynamic client registration (`oauth/register`) also has an hourly cap across all IPs (`MCP_OAUTH_REGISTRATION_GLOBAL_RATE_LIMIT`, default `100`), which holds when a proxy hides the client IP.
+
+### Fixed
+- `search_settings` returns the codes of the locales and currencies assigned to each channel.
+- Every tool has a readable title (for example "Get product" instead of "Product Get Tool"); dynamic skill tools are titled after their skill.
+
+## [1.0.5] - 2026-10-16
+
+### Fixed
+- The server instructions sent to clients only describe the developer tools, diagnostics and dynamic skills when they are served: over stdio, or over HTTP with `MCP_REMOTE_DEVELOPER_TOOLS` enabled.
+- The server instructions no longer tell clients to start with `get_catalog_schema` to discover the catalog structure; they point to `search_settings` for channels and locales and `search_attributes` for attribute definitions.
+- `get_job_execution` reports a missing execution with a translated message.
+- `get_job_execution` rejects an `id` outside the integer column range with a validation error; on PostgreSQL such an id previously failed with a generic error.
+- Remote (HTTP) MCP requests use the authenticated admin's UI locale, as the admin panel does, so translated messages match the admin's language; admins without one get the application default.
+- The server instructions tell clients to filter `search_settings` locales by `status` = 1, since the unfiltered list includes every locale UnoPim ships.
+- The `get_job_execution` input schema advertises the accepted `id` range (1 to 2147483647).
+- The server instructions are sent without leading indentation, so clients no longer render them as a Markdown code block.
+
+### Added
+- `search_jobs` returns each job's `latest_execution` (`id`, `state`, `started_at`, `completed_at`, or `null` if it never ran), loaded in one query per page. Its `id` is the one `get_job_execution` takes. It is included only for admins with the `data_transfer.job_tracker` permission.
+
+## [1.0.4] - 2026-10-14
+
+### Security
+- Upsert tools check `.create` for records that do not exist yet and `.edit` for records that do, instead of `.create` for everything. A create-only role can no longer update records.
+- `upsert_settings` requires `settings.channels.create|edit` or `settings.locales.create|edit` instead of the view-level `settings` permission.
+- Tokens issued to a disabled admin are refused with a 401 and a `WWW-Authenticate` challenge.
+- `run_database_query` accepts a single SELECT, WITH, SHOW, EXPLAIN or DESCRIBE statement, rejects `INTO`, locking clauses and sleep/file/dblink functions, and on MySQL, MariaDB and PostgreSQL runs in a read-only transaction on a dedicated connection that is always rolled back.
+- `get_database_schema` lists only the application's own schema, not every database on the server.
+- `dev_tools` file operations resolve symlinks and match allowed paths by whole directory, so sibling directories, symlinks pointing outside and dangling symlinks are refused.
+- `dev_tools` `run_command` blocks `php artisan tinker` (and its abbreviations), `composer exec` and `composer global`.
+- `generate_plugin` and `generate_test` reject names that would write outside `packages/`.
+- The `.create`/`.edit` check reads each upsert tool's own item list (`products`, `categories`, `attributes`, `items`). `upsert_products`, `upsert_categories` and `upsert_attributes` used to fall back to `.create`, so a create-only role could still update existing records.
+- `run_database_query` lexes comments and literals per dialect (MySQL `-- ` and `#`, PostgreSQL dollar quotes and `E''` strings), checks with and without backslash escapes, keeps quoted function names visible, and checks `SHOW`, `DESC` and `DESCRIBE` too. Queries are capped at 30 seconds on MySQL (`max_execution_time`) and MariaDB (`max_statement_time`), as on PostgreSQL.
+- `upsert_families`, `upsert_attribute_groups`, `upsert_currencies` and `dev_tools` no longer return raw database or system exception messages. Unexpected errors are logged and reported with a reference.
+- The OAuth authorize endpoint rejects a `code_challenge` sent with any method but `S256`, including a missing method (which League treats as `plain`), with `400 invalid_request`, as OAuth 2.1 and the MCP authorization spec require.
+- Dynamic client registration (`POST oauth/register`) caps the request body (16 KB), the number of redirect URIs (10) and each redirect URI's length (2048 characters), answering `400 invalid_client_metadata`, and is rate limited to 10 registrations per minute per IP (`429`). All limits are configurable under `mcp.oauth.registration`.
+
+### Fixed
+- `upsert_currencies` refuses to disable a currency that a channel still uses, as the admin panel does, naming the currency and writing nothing from the batch.
+- The OAuth authorization server metadata now advertises `token_endpoint_auth_methods_supported: ["none"]`, which ChatGPT requires before it connects. `laravel/mcp` does not publish the field; a value it publishes in a later release is kept.
+- `upsert_families` no longer deletes a family's attribute groups and attribute assignments when an existing family is updated; only the name changes.
+- `upsert_attributes` updates options on an existing attribute by code instead of crashing, rejects changing an existing attribute's `type`, and validates `type` against UnoPim's attribute types and codes with UnoPim's code rule.
+- `upsert_categories` stores `name` as the category name for the requested locale, rejects a missing parent or a parent inside the category's own subtree, and no longer advertises an unused `status` field.
+- `upsert_products` accepts only product types registered in UnoPim, requires an existing family, validates SKUs with UnoPim's SKU rule, creates configurable products with `super_attributes`, creates variants under a configurable parent with `parent_sku`, and writes `status`.
+- `upsert_products` rejects changing a variant's variant attribute values to a combination a sibling variant already has.
+- `upsert_products` errors name the failing item: keys read `products.{index}.values.…` and the message and payload carry its index and SKU. The batch still rolls back as a whole.
+- `upsert_products` rejects prices in a currency that is not active, and prices sent as a list instead of a currency-to-amount object.
+- `upsert_products` documents the `values` shape (sections, scopes, value formats and an example), and points `categories` or `associations` sent inside an attribute section, or an attribute sent in the wrong section, to where it belongs. A missing `type` or `attribute_family_id` on create is reported as a translated validation error.
+- Search tools reject a filter value that is not a date for a date or timestamp column, or not a number for a numeric column, instead of silently returning no rows.
+- `search_attribute_options` pages reliably when options share a sort order, and filtering by `label` works.
+- Search tools return a clear validation error for an unknown filter field or operator, a list passed to a single-value operator, or an invalid cursor, instead of a generic error or a silent restart at page one. Filter fields are checked against the table's columns before they reach SQL.
+- Search tools can filter on translated fields such as `name` and `label`.
+- `get_catalog_schema` advertises only filter fields that `search_products` accepts, with product attribute values given as JSON paths.
+- `get_product` resolves a numeric identifier by SKU before ID, accepts an integer identifier, and marks it required.
+- Search tool schemas declare `filters[].value` as a string, number, boolean or list.
+- `search_products` reports `status` as a boolean, consistent with `get_product`.
+- `upsert_settings` saves every submitted field: locale `status`, new channels with their root category, name, locales and currencies, and partial channel updates that keep existing locales and currencies. Disabling a locale in use is rejected, as in the admin panel.
+- Dynamic skill tools always get a valid MCP tool name (`^[a-zA-Z0-9_-]{1,64}$`).
+- `generate_test` writes to `packages/Webkul/{package}/tests/Unit`, accepts fully qualified class names and generates a Pest test.
+- `run_skill` returns the skill's instructions and input, and an error for an unknown skill instead of always reporting success.
+- The permission denial message reads "Forbidden: you do not have permission to run [tool]." and is translated.
+
+### Added
+- `upsert_families` accepts `attribute_groups` (`[{code, attributes}]`) to add attribute groups and attributes to a family. It only adds, never removes, so a family built over MCP can hold the attributes its products need.
+
+### Changed
+- Rate limiting is counted per tool per authenticated user, falling back to the client IP.
+- `read_logs` no longer accepts `type: mcp`; that file was never written. MCP audit entries are in the default log channel.
+
+### Upgrade notes
+- Roles that update records through MCP now need the `.edit` permission (e.g. `catalog.products.edit`); a batch that both creates and updates needs both.
+- `upsert_settings` needs `settings.channels.*` or `settings.locales.*`; new channels must send `root_category_id`, `locales` and `currencies`.
+- A package symlinked into `packages/` from elsewhere is outside `mcp.allowed_paths`; add its real path if `dev_tools` should edit it.
+
+## [1.0.3] - 2026-10-12
+
+### Security
+- Every catalog, settings and data transfer tool now checks its own UnoPim ACL permission. Tools without a mapping, including developer tools and dynamic skills, require a full access role. Previously they fell back to the `catalog` permission, and any `settings` permission granted every tool.
+- The remote HTTP endpoint no longer serves developer tools (`dev_tools`, `run_skill`, `get_app_info`, `get_database_schema`, `run_database_query`, `read_logs`) or dynamic skills unless `MCP_REMOTE_DEVELOPER_TOOLS=true`. Stdio (`mcp:dev`) is unchanged.
+
+### Fixed
+- `upsert_products` validates and merges values through the same path as the REST PATCH endpoint, so associations survive partial updates, unknown option codes are rejected and every locale in a payload is stored ([#4](https://github.com/unopim/unopim-mcp/issues/4)).
+- `IN` / `NOT IN` filters accept a comma-separated string as well as an array ([#5](https://github.com/unopim/unopim-mcp/issues/5)).
+- The product and attribute upserts no longer leave a database transaction open when they return an error early.
+- A consent view the host application already bound is no longer overridden.
+- `get_product` looks up by `id` only when the identifier is numeric; comparing a SKU with the integer column failed every SKU lookup on PostgreSQL.
+- MCP requests are authenticated per request: `mcp.api_auth` is honoured at runtime, and a client that sends no `Accept` header receives the 401 challenge instead of a login redirect.
+- `mcp:inspector` runs through the `Process` facade, so it can be faked in tests instead of launching the real Inspector.
+
+### Changed
+- Requires `laravel/mcp` `^0.7.1`, where the JsonRpc classes moved; older releases failed every `tools/call`.
+- `upsert_products` now rejects values the REST API rejects, for example `common.name` when `name` is channel and locale scoped.
+- Translations ship for all 33 UnoPim locales.
+- CI runs Pint, Pest on MySQL, MariaDB and PostgreSQL, PHPStan and the translation check against the latest UnoPim release.
+
+### Upgrade notes
+- Admins on custom roles need the matching ACL permission per tool; `settings` is no longer a blanket grant.
+- Set `MCP_REMOTE_DEVELOPER_TOOLS=true` to keep serving developer tools to remote clients.
+- Stock UnoPim Docker/Nginx: allow `/.well-known/` above the hidden-file rule, see the README ([#16](https://github.com/unopim/unopim-mcp/issues/16)).
+
+## [1.0.2] - 2026-09-04
+
+### Fixed
+- UnoPim 3 / Passport 13: the package ships and registers its own OAuth consent screen and moves Passport onto the `admin` guard, fixing the HTTP 500 on `/oauth/authorize` ([#13](https://github.com/unopim/unopim-mcp/issues/13)).
+- Remote MCP clients stay connected: an expired or missing token answers 401 with a `WWW-Authenticate` challenge instead of a login redirect.
+- All 25 shipped tools are registered ([#6](https://github.com/unopim/unopim-mcp/issues/6)).
+- Annotations on two read-only tools.
+
+### Changed
+- Supports Laravel 13 and requires `laravel/passport` `^13.0`.
+
+## [1.0.1] - 2026-06-12
+
+### Added
+- Self-contained Passport OAuth integration for remote MCP clients, including the claude.ai custom connector flow.
+
+### Fixed
+- The guard bridge is skipped when the `api` or `admin` guard is undefined.
+
 ## [1.0.0] - 2026-04-17
 
 ### Added

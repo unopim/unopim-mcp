@@ -24,6 +24,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Remote Developer Tools
+    |--------------------------------------------------------------------------
+    |
+    | Developer tools and dynamic skills (file writes, commands, SQL, logs) are
+    | always available over stdio. Enable this to serve them over HTTP too.
+    |
+    */
+    'remote_developer_tools' => env('MCP_REMOTE_DEVELOPER_TOOLS', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Path Restriction
     |--------------------------------------------------------------------------
     |
@@ -73,10 +84,31 @@ return [
     */
     'media' => [
         'allowed_extensions' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'csv', 'xlsx'],
-        'allowed_mimes'      => [
+        'allowed_mimes' => [
             'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
             'application/pdf', 'text/csv', 'text/plain', 'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | OAuth Client Registration
+    |--------------------------------------------------------------------------
+    |
+    | Caps applied to the dynamic client registration endpoint (oauth/register):
+    | the request body size in bytes, the number and length of redirect URIs,
+    | the registrations allowed per minute from a single IP address, and the
+    | registrations allowed per hour across all IP addresses.
+    |
+    */
+    'oauth' => [
+        'registration' => [
+            'max_body_bytes' => env('MCP_OAUTH_REGISTRATION_MAX_BODY_BYTES', 16384),
+            'max_redirect_uris' => env('MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URIS', 10),
+            'max_redirect_uri_length' => env('MCP_OAUTH_REGISTRATION_MAX_REDIRECT_URI_LENGTH', 2048),
+            'rate_limit' => env('MCP_OAUTH_REGISTRATION_RATE_LIMIT', 10),
+            'global_rate_limit' => env('MCP_OAUTH_REGISTRATION_GLOBAL_RATE_LIMIT', 100),
         ],
     ],
 ];

@@ -3,12 +3,13 @@
 namespace Webkul\MCP\Tools\Dev;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsReadOnly]
 class DatabaseSchemaTool extends BaseMcpTool
 {
     /**
@@ -17,10 +18,20 @@ class DatabaseSchemaTool extends BaseMcpTool
     protected string $description = 'Retrieve the schema information for database tables to understand the data structure.';
 
     /**
+     * The tool's title.
+     */
+    protected string $title = 'Get database schema';
+
+    /**
      * The tool's name.
      */
     public string $name = 'get_database_schema';
 
+    /**
+     * List only the application's own schema. MySQL and MariaDB report the configured
+     * database, PostgreSQL the search path and SQLite `main`; a driver without a schema
+     * listing returns null, which lists every table the connection can see.
+     */
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
@@ -37,13 +48,12 @@ class DatabaseSchemaTool extends BaseMcpTool
             $columns = Schema::getColumns($table);
 
             return Response::json([
-                'table'   => $table,
-                'schema'  => $columns,
+                'table' => $table,
+                'schema' => $columns,
             ]);
         }
 
-        // List all tables
-        $tables = Schema::getTables();
+        $tables = Schema::getTables(Schema::getCurrentSchemaListing());
 
         return Response::json([
             'tables' => $tables,

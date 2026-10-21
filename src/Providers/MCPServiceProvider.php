@@ -2,9 +2,17 @@
 
 namespace Webkul\MCP\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Mcp\Facades\Mcp;
+use Laravel\Mcp\Server\Middleware\AddWwwAuthenticateHeader;
+use Laravel\Mcp\Server\Middleware\ReorderJsonAccept;
+use Laravel\Passport\Contracts\AuthorizationViewResponse;
+use Laravel\Passport\Passport;
 use Webkul\MCP\Console\Commands\DevMcpCommand;
 use Webkul\MCP\Console\Commands\MCPInspectorCommand;
 use Webkul\MCP\Console\Commands\PluginMakeCommand;
@@ -15,6 +23,9 @@ use Webkul\MCP\DevTools\CommandRunner;
 use Webkul\MCP\DevTools\FileManager;
 use Webkul\MCP\DevTools\PluginGenerator;
 use Webkul\MCP\DevTools\TestGenerator;
+use Webkul\MCP\Http\Middleware\AdvertiseTokenEndpointAuthMethods;
+use Webkul\MCP\Http\Middleware\LimitClientRegistration;
+use Webkul\MCP\Http\Middleware\RequireS256CodeChallenge;
 use Webkul\MCP\Servers\UnoPimAgentServer;
 use Webkul\MCP\Services\SkillExecutor;
 use Webkul\MCP\Services\SkillLoader;
@@ -64,11 +75,11 @@ class MCPServiceProvider extends ServiceProvider
                 $app->make(FileManagerInterface::class),
                 $app->make(CommandRunner::class),
                 $app->make(PluginGenerator::class),
-                $app->make(TestGenerator::class)
+                $app->make(TestGenerator::class),
+                $app->make(SkillLoader::class),
             );
         });
 
-        // Aliases for backward compatibility if needed, though interfaces are preferred
         $this->app->alias(FileManagerInterface::class, FileManager::class);
         $this->app->alias(SkillExecutorInterface::class, SkillExecutor::class);
 
@@ -80,17 +91,29 @@ class MCPServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->loadTranslationsFrom(dirname(__DIR__).'/Resources/lang', 'mcp');
+
+        $this->loadViewsFrom(dirname(__DIR__).'/Resources/views', 'mcp-unopim');
+
+        $this->publishes([
+            dirname(__DIR__).'/Resources/views' => resource_path('views/vendor/mcp-unopim'),
+        ], 'mcp-unopim-views');
+
         Mcp::local('unopim-dev', UnoPimAgentServer::class);
 
-        $middlewares = ['api'];
-
-        if (config('mcp.api_auth')) {
-            $middlewares[] = 'auth:api';
-        }
-
-        Route::middleware($middlewares)->group(__DIR__.'/../Routes/mcp-routes.php');
+        Route::middleware('api')->group(__DIR__.'/../Routes/mcp-routes.php');
 
         Mcp::oauthRoutes();
+
+        $this->advertiseTokenEndpointAuthMethods();
+
+        $this->guardClientRegistration();
+
+        $this->requireS256CodeChallenge();
+
+        $this->configurePassportViews();
+
+        $this->prioritizeMcpTransportMiddleware();
 
         $this->registerLoginRouteFallback();
 
@@ -104,24 +127,85 @@ class MCPServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * Passport defaults to the "web" guard, which UnoPim does not define.
-     * Admin sessions live on the "admin" guard, so the OAuth authorize
-     * flow must check that guard to recognize logged-in admins.
-     */
-    protected function configurePassportGuard(): void
+    protected function advertiseTokenEndpointAuthMethods(): void
     {
-        $guard = config('passport.guard', 'web');
-
-        if (! config("auth.guards.{$guard}") && config('auth.guards.admin')) {
-            config(['passport.guard' => 'admin']);
+        foreach (Route::getRoutes()->get('GET') as $route) {
+            if (str_starts_with($route->uri(), '.well-known/oauth-authorization-server')) {
+                $route->middleware(AdvertiseTokenEndpointAuthMethods::class);
+            }
         }
     }
 
     /**
-     * Passport's authorize flow redirects guests to the framework-default
-     * "login" route, which UnoPim does not define — alias it to admin login.
+     * Throttle and cap the dynamic client registration endpoint laravel/mcp registers unguarded.
+     *
+     * The hourly global cap holds even when a proxy hides the client IP and every request appears to come from a different address.
      */
+    protected function guardClientRegistration(): void
+    {
+        $rejection = fn (Request $request, array $headers) => response()->json([
+            'error' => 'too_many_requests',
+            'error_description' => trans('mcp::app.oauth.registration.rate-limited'),
+        ], 429, $headers);
+
+        RateLimiter::for('mcp-oauth-register', fn (Request $request) => [
+            Limit::perMinute((int) config('mcp.oauth.registration.rate_limit', 10))
+                ->by($request->ip())
+                ->response($rejection),
+            Limit::perHour((int) config('mcp.oauth.registration.global_rate_limit', 100))
+                ->by('global')
+                ->response($rejection),
+        ]);
+
+        foreach (Route::getRoutes()->get('POST') as $route) {
+            if ($route->uri() === 'oauth/register') {
+                $route->middleware(['throttle:mcp-oauth-register', LimitClientRegistration::class]);
+            }
+        }
+    }
+
+    /**
+     * Passport registers its routes from its own provider, so the authorize route is guarded once the app has booted.
+     */
+    protected function requireS256CodeChallenge(): void
+    {
+        $this->app->booted(function (): void {
+            Route::getRoutes()->getByName('passport.authorizations.authorize')?->middleware(RequireS256CodeChallenge::class);
+        });
+    }
+
+    protected function configurePassportViews(): void
+    {
+        if (! class_exists(Passport::class) || $this->app->bound(AuthorizationViewResponse::class)) {
+            return;
+        }
+
+        Passport::authorizationView('mcp-unopim::authorize');
+    }
+
+    protected function prioritizeMcpTransportMiddleware(): void
+    {
+        $kernel = $this->app->make(HttpKernel::class);
+
+        if (! method_exists($kernel, 'prependToMiddlewarePriority')) {
+            return;
+        }
+
+        $kernel->prependToMiddlewarePriority(AddWwwAuthenticateHeader::class);
+        $kernel->prependToMiddlewarePriority(ReorderJsonAccept::class);
+    }
+
+    protected function configurePassportGuard(): void
+    {
+        if (config('passport.guard', 'web') !== 'web') {
+            return;
+        }
+
+        if (config('auth.guards.admin')) {
+            config(['passport.guard' => 'admin']);
+        }
+    }
+
     protected function registerLoginRouteFallback(): void
     {
         $this->app->booted(function () {

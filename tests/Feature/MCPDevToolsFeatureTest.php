@@ -58,9 +58,9 @@ it('generates a plugin via dev_tools action', function () {
     $executor = \Mockery::mock(SkillExecutorInterface::class);
     app()->instance(SkillExecutorInterface::class, $executor);
     $executor->shouldReceive('generatePlugin')->once()->with('CoolPlugin', 'connector')->andReturn([
-        'name'    => 'CoolPlugin',
+        'name' => 'CoolPlugin',
         'message' => 'Plugin [CoolPlugin] generated successfully.',
-        'files'   => [],
+        'files' => [],
     ]);
 
     UnoPimAgentServer::tool(DevToolsTool::class, [

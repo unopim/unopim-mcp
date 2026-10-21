@@ -25,7 +25,7 @@ class SkillParser
             $this->extractFrontmatter($raw),
             [
                 'content' => $this->extractBody($raw),
-                'path'    => $filePath,
+                'path' => $filePath,
             ]
         );
     }
@@ -38,10 +38,10 @@ class SkillParser
     private function extractFrontmatter(string $content): array
     {
         $defaults = [
-            'name'        => '',
+            'name' => '',
             'description' => '',
-            'license'     => '',
-            'metadata'    => [],
+            'license' => '',
+            'metadata' => [],
         ];
 
         if (! preg_match('/^---\s*\n(.*?)\n---\s*\n?/s', $content, $matches)) {
@@ -55,11 +55,11 @@ class SkillParser
         }
 
         return [
-            'name'        => (string) ($parsed['name'] ?? ''),
+            'name' => (string) ($parsed['name'] ?? ''),
             'description' => (string) ($parsed['description'] ?? ''),
-            'license'     => (string) ($parsed['license'] ?? ''),
-            'parameters'  => (array) ($parsed['parameters'] ?? []),
-            'metadata'    => (array) ($parsed['metadata'] ?? []),
+            'license' => (string) ($parsed['license'] ?? ''),
+            'parameters' => (array) ($parsed['parameters'] ?? []),
+            'metadata' => (array) ($parsed['metadata'] ?? []),
         ];
     }
 

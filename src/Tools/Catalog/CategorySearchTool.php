@@ -5,16 +5,23 @@ namespace Webkul\MCP\Tools\Catalog;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\Category\Repositories\CategoryRepository;
 use Webkul\MCP\Services\UnoPimQueryBuilder;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsReadOnly]
 class CategorySearchTool extends BaseMcpTool
 {
     /**
      * The tool's description.
      */
     protected string $description = 'Search for categories in the UnoPim catalog using generic filters and pagination.';
+
+    /**
+     * The tool's title.
+     */
+    protected string $title = 'Search categories';
 
     /**
      * The tool's name.
@@ -30,8 +37,8 @@ class CategorySearchTool extends BaseMcpTool
     {
         $validated = $request->validate([
             'filters' => ['nullable', 'array'],
-            'limit'   => ['nullable', 'integer', 'min:1', 'max:100'],
-            'cursor'  => ['nullable', 'string'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'cursor' => ['nullable', 'string'],
         ]);
 
         $query = $this->categoryRepository->getModel()->query();
@@ -47,13 +54,13 @@ class CategorySearchTool extends BaseMcpTool
         );
 
         return Response::json([
-            'count'       => $paginator->count(),
+            'count' => $paginator->count(),
             'next_cursor' => $paginator->nextCursor()?->encode(),
-            'has_more'    => $paginator->hasMorePages(),
-            'categories'  => $paginator->map(fn ($c) => [
-                'id'        => $c->id,
-                'code'      => $c->code,
-                'name'      => $c->name ?? $c->code,
+            'has_more' => $paginator->hasMorePages(),
+            'categories' => $paginator->map(fn ($c) => [
+                'id' => $c->id,
+                'code' => $c->code,
+                'name' => $c->name ?? $c->code,
                 'parent_id' => $c->parent_id,
             ])->values()->all(),
         ]);
@@ -65,15 +72,11 @@ class CategorySearchTool extends BaseMcpTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'filters' => $schema->array()
-                ->description('List of filters: [{field, operator, value}].')
-                ->items(
-                    $schema->object([
-                        'field'    => $schema->string()->description('The field to filter by.'),
-                        'operator' => $schema->string()->description('The comparison operator.'),
-                        'value'    => $schema->string()->description('The value to compare against.'),
-                    ])
-                ),
+            'filters' => $this->filtersSchema(
+                $schema,
+                'List of filters: [{field, operator, value}].',
+                'A category column (id, code, parent_id) or a JSON path, e.g. additional_data->locale_specific->en_US->name.',
+            ),
             'limit' => $schema->integer()
                 ->description('Number of results per page.')
                 ->default(25),

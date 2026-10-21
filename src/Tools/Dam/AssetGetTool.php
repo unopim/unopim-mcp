@@ -45,7 +45,8 @@ class AssetGetTool extends BaseMcpTool
 
     /**
      * An asset outside the directories the caller may open is reported as not found, so
-     * the tool does not reveal which ids exist.
+     * the tool does not reveal which ids exist. An asset in any accessible directory is
+     * returned, as in the DAM's asset grid, and only its accessible directories are listed.
      */
     protected function execute(Request $request): Response
     {
@@ -54,12 +55,16 @@ class AssetGetTool extends BaseMcpTool
             'include_download_url' => ['nullable', 'boolean'],
         ]);
 
-        $query = Asset::with(['tags', 'properties', 'directories', 'resources']);
-
         $accessible = $this->directoryAccess->accessibleIds();
 
+        $inAccessibleDirectories = fn ($directories) => $accessible === null
+            ? $directories
+            : $directories->whereIn('dam_directories.id', $accessible);
+
+        $query = Asset::with(['tags', 'properties', 'directories' => $inAccessibleDirectories, 'resources']);
+
         if ($accessible !== null) {
-            $query->whereHas('directories', fn ($directories) => $directories->whereIn('dam_directories.id', $accessible));
+            $query->whereHas('directories', $inAccessibleDirectories);
         }
 
         $asset = $query->find($validated['id']);

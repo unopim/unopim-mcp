@@ -36,7 +36,9 @@ class AssetSearchTool extends BaseMcpTool
 
     /**
      * The tag filter matches tag names containing the given text literally, so `%` and `_`
-     * are escaped rather than acting as LIKE wildcards.
+     * are escaped rather than acting as LIKE wildcards. For a role the DAM limits to some
+     * directories, `directory_id` only matches when that directory is accessible, so an
+     * asset that is also in a hidden directory cannot be found through it.
      */
     protected function execute(Request $request): Response
     {
@@ -60,16 +62,13 @@ class AssetSearchTool extends BaseMcpTool
             $query->whereHas('tags', fn ($tags) => $tags->where('name', 'like', $tag));
         }
 
-        if (! empty($validated['directory_id'])) {
-            $directoryId = (int) $validated['directory_id'];
-
-            $query->whereHas('directories', fn ($directories) => $directories->where('dam_directories.id', $directoryId));
-        }
-
+        $directoryId = empty($validated['directory_id']) ? null : (int) $validated['directory_id'];
         $accessible = $this->directoryAccess->accessibleIds();
 
-        if ($accessible !== null) {
-            $query->whereHas('directories', fn ($directories) => $directories->whereIn('dam_directories.id', $accessible));
+        if ($directoryId !== null || $accessible !== null) {
+            $query->whereHas('directories', fn ($directories) => $directories
+                ->when($directoryId !== null, fn ($directories) => $directories->where('dam_directories.id', $directoryId))
+                ->when($accessible !== null, fn ($directories) => $directories->whereIn('dam_directories.id', $accessible)));
         }
 
         $paginator = $this->queryBuilder->paginate(

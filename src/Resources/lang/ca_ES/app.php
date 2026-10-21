@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'No s\'ha trobat l\'execució de la tasca.',
         ],
+        'get-asset' => [
+            'not-found' => 'No s\'ha trobat el recurs [:id].',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'No s\'ha trobat el directori de recursos [:id].',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'La moneda [:code] s\'utilitza en un canal i no es pot desactivar.',
         ],

@@ -5,16 +5,24 @@ namespace Webkul\MCP\Tools\Dam;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Webkul\DAM\Models\Asset;
+use Webkul\MCP\Services\DamDirectoryAccess;
 use Webkul\MCP\Services\UnoPimQueryBuilder;
 use Webkul\MCP\Tools\BaseMcpTool;
 
+#[IsReadOnly]
 class AssetSearchTool extends BaseMcpTool
 {
     /**
      * The tool's description.
      */
-    protected string $description = 'Search digital assets in the DAM by name, type, tag or directory, with generic filters and pagination. Read-only.';
+    protected string $description = 'Search digital assets in the DAM by name, type, tag or directory, with generic filters and pagination. Only assets in directories the caller may open are returned. Read-only.';
+
+    /**
+     * The tool's title.
+     */
+    protected string $title = 'Search assets';
 
     /**
      * The tool's name.
@@ -22,17 +30,22 @@ class AssetSearchTool extends BaseMcpTool
     public string $name = 'search_assets';
 
     public function __construct(
-        protected UnoPimQueryBuilder $queryBuilder
+        protected UnoPimQueryBuilder $queryBuilder,
+        protected DamDirectoryAccess $directoryAccess
     ) {}
 
+    /**
+     * The tag filter matches tag names containing the given text literally, so `%` and `_`
+     * are escaped rather than acting as LIKE wildcards.
+     */
     protected function execute(Request $request): Response
     {
         $validated = $request->validate([
-            'filters'      => ['nullable', 'array'],
-            'tag'          => ['nullable', 'string', 'max:255'],
-            'directory_id' => ['nullable', 'integer'],
-            'limit'        => ['nullable', 'integer', 'min:1', 'max:100'],
-            'cursor'       => ['nullable', 'string'],
+            'filters' => ['nullable', 'array'],
+            'tag' => ['nullable', 'string', 'max:255'],
+            'directory_id' => ['nullable', 'integer', 'min:1', 'max:2147483647'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'cursor' => ['nullable', 'string'],
         ]);
 
         $query = Asset::query();
@@ -41,14 +54,22 @@ class AssetSearchTool extends BaseMcpTool
             $this->queryBuilder->applyFilters($query, $validated['filters']);
         }
 
-        if (! empty($validated['tag'])) {
-            $tag = $validated['tag'];
-            $query->whereHas('tags', fn ($q) => $q->where('name', 'like', '%'.$tag.'%'));
+        if (isset($validated['tag']) && $validated['tag'] !== '') {
+            $tag = '%'.addcslashes($validated['tag'], '\\%_').'%';
+
+            $query->whereHas('tags', fn ($tags) => $tags->where('name', 'like', $tag));
         }
 
         if (! empty($validated['directory_id'])) {
             $directoryId = (int) $validated['directory_id'];
-            $query->whereHas('directories', fn ($q) => $q->where('directory_id', $directoryId));
+
+            $query->whereHas('directories', fn ($directories) => $directories->where('dam_directories.id', $directoryId));
+        }
+
+        $accessible = $this->directoryAccess->accessibleIds();
+
+        if ($accessible !== null) {
+            $query->whereHas('directories', fn ($directories) => $directories->whereIn('dam_directories.id', $accessible));
         }
 
         $paginator = $this->queryBuilder->paginate(
@@ -58,16 +79,16 @@ class AssetSearchTool extends BaseMcpTool
         );
 
         return Response::json([
-            'count'       => $paginator->count(),
+            'count' => $paginator->count(),
             'next_cursor' => $paginator->nextCursor()?->encode(),
-            'has_more'    => $paginator->hasMorePages(),
-            'assets'      => $paginator->map(fn ($asset) => [
-                'id'        => $asset->id,
+            'has_more' => $paginator->hasMorePages(),
+            'assets' => $paginator->map(fn ($asset): array => [
+                'id' => $asset->id,
                 'file_name' => $asset->file_name,
                 'file_type' => $asset->file_type,
                 'mime_type' => $asset->mime_type,
                 'file_size' => $asset->file_size,
-                'path'      => $asset->path,
+                'path' => $asset->path,
             ])->values()->all(),
         ]);
     }
@@ -78,19 +99,17 @@ class AssetSearchTool extends BaseMcpTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'filters' => $schema->array()
-                ->description('List of filters over asset columns (file_name, file_type, extension, mime_type): [{field, operator, value}]. For IN and NOT IN, pass a comma-separated list ("a,b") or an array.')
-                ->items(
-                    $schema->object([
-                        'field'    => $schema->string()->description('The field to filter by.'),
-                        'operator' => $schema->string()->description('The comparison operator.'),
-                        'value'    => $schema->string()->description('The value to compare against.'),
-                    ])
-                ),
+            'filters' => $this->filtersSchema(
+                $schema,
+                'List of filters: [{field, operator, value}].',
+                'An asset column (id, file_name, file_type, extension, mime_type, file_size, path, created_at, updated_at).',
+            ),
             'tag' => $schema->string()
                 ->description('Only assets carrying a tag whose name contains this text.'),
             'directory_id' => $schema->integer()
-                ->description('Only assets inside this directory (see browse_asset_directories).'),
+                ->description('Only assets inside this directory (see browse_asset_directories).')
+                ->min(1)
+                ->max(2147483647),
             'limit' => $schema->integer()
                 ->description('Number of results per page.')
                 ->default(25),

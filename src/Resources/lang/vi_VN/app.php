@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Không tìm thấy lần thực thi công việc.',
         ],
+        'get-asset' => [
+            'not-found' => 'Không tìm thấy tài sản [:id].',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Không tìm thấy thư mục tài sản [:id].',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Tiền tệ [:code] đang được một kênh sử dụng nên không thể tắt.',
         ],

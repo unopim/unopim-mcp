@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'لم يتم العثور على تنفيذ المهمة.',
         ],
+        'get-asset' => [
+            'not-found' => 'لم يتم العثور على الأصل [:id].',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'لم يتم العثور على مجلد الأصول [:id].',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'العملة [:code] مستخدمة في قناة ولا يمكن تعطيلها.',
         ],

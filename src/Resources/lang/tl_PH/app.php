@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Hindi nahanap ang pagpapatakbo ng job.',
         ],
+        'get-asset' => [
+            'not-found' => 'Hindi nahanap ang asset [:id].',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Hindi nahanap ang direktoryo ng asset [:id].',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Ginagamit ng isang channel ang currency na [:code] kaya hindi ito maaaring i-disable.',
         ],

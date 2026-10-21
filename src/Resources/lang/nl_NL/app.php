@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Taakuitvoering niet gevonden.',
         ],
+        'get-asset' => [
+            'not-found' => 'Asset [:id] niet gevonden.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Assetmap [:id] niet gevonden.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Valuta [:code] wordt door een kanaal gebruikt en kan niet worden uitgeschakeld.',
         ],

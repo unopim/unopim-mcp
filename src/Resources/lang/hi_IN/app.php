@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'जॉब निष्पादन नहीं मिला।',
         ],
+        'get-asset' => [
+            'not-found' => 'एसेट [:id] नहीं मिला।',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'एसेट डायरेक्टरी [:id] नहीं मिली।',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'मुद्रा [:code] किसी चैनल में उपयोग हो रही है, इसलिए इसे निष्क्रिय नहीं किया जा सकता।',
         ],

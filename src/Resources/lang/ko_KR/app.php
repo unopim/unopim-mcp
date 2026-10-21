@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => '작업 실행을 찾을 수 없습니다.',
         ],
+        'get-asset' => [
+            'not-found' => '에셋 [:id]을(를) 찾을 수 없습니다.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => '에셋 디렉터리 [:id]을(를) 찾을 수 없습니다.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => '통화 [:code]은(는) 채널에서 사용 중이므로 비활성화할 수 없습니다.',
         ],

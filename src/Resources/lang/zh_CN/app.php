@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => '未找到作业执行记录。',
         ],
+        'get-asset' => [
+            'not-found' => '未找到资产 [:id]。',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => '未找到资产目录 [:id]。',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => '货币 [:code] 正被渠道使用，无法停用。',
         ],

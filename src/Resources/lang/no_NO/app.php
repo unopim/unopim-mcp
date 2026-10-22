@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Jobbkjøringen ble ikke funnet.',
         ],
+        'get-asset' => [
+            'not-found' => 'Ressursen [:id] ble ikke funnet.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Ressursmappen [:id] ble ikke funnet.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Valutaen [:code] brukes av en kanal og kan ikke deaktiveres.',
         ],

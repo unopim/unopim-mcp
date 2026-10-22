@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Выполнение задания не найдено.',
         ],
+        'get-asset' => [
+            'not-found' => 'Ресурс [:id] не найден.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Каталог ресурсов [:id] не найден.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Валюта [:code] используется каналом, её нельзя отключить.',
         ],

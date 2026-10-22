@@ -3,6 +3,7 @@
 namespace Webkul\MCP\Registry;
 
 use Laravel\Mcp\Server\Tool;
+use Webkul\DAM\Models\Asset;
 use Webkul\MCP\Tools\Catalog\AttributeFamilySearchTool;
 use Webkul\MCP\Tools\Catalog\AttributeFamilyUpsertTool;
 use Webkul\MCP\Tools\Catalog\AttributeGroupSearchTool;
@@ -16,6 +17,9 @@ use Webkul\MCP\Tools\Catalog\CategoryUpsertTool;
 use Webkul\MCP\Tools\Catalog\ProductGetTool;
 use Webkul\MCP\Tools\Catalog\ProductSearchTool;
 use Webkul\MCP\Tools\Catalog\ProductUpsertTool;
+use Webkul\MCP\Tools\Dam\AssetGetTool;
+use Webkul\MCP\Tools\Dam\AssetSearchTool;
+use Webkul\MCP\Tools\Dam\DirectoryTreeTool;
 use Webkul\MCP\Tools\DataTransfer\JobExecutionTool;
 use Webkul\MCP\Tools\DataTransfer\JobSearchTool;
 use Webkul\MCP\Tools\Dev\AppInfoTool;
@@ -38,7 +42,7 @@ class ToolRegistry
      */
     public static function tools(): array
     {
-        return [
+        return array_merge([
             // Catalog Discovery & Schema
             CatalogSchemaTool::class,
 
@@ -78,7 +82,7 @@ class ToolRegistry
             DatabaseSchemaTool::class,
             DatabaseQueryTool::class,
             LogReadTool::class,
-        ];
+        ], static::damTools());
     }
 
     /**
@@ -95,6 +99,26 @@ class ToolRegistry
             DatabaseSchemaTool::class,
             DatabaseQueryTool::class,
             LogReadTool::class,
+        ];
+    }
+
+    /**
+     * DAM tools, present only when the optional unopim/dam package is
+     * installed. The MCP package does not depend on the DAM, so the class
+     * check is the extension seam: no DAM, no tools, no error.
+     *
+     * @return array<int, class-string<Tool>>
+     */
+    protected static function damTools(): array
+    {
+        if (! class_exists(Asset::class)) {
+            return [];
+        }
+
+        return [
+            AssetSearchTool::class,
+            AssetGetTool::class,
+            DirectoryTreeTool::class,
         ];
     }
 }

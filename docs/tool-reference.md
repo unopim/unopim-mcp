@@ -141,6 +141,45 @@ Fetch a single job execution (JobTrack) by ID (an integer from 1 to 2147483647),
 
 ---
 
+## DAM Tools
+
+Registered only when the optional [unopim/dam](https://github.com/unopim/unopim-digital-asset-management) package is installed (`Webkul\DAM\Models\Asset` exists); without it these tools are not listed. All three are read-only. A role that the DAM limits to some directories gets the same limit here: assets outside its directories are left out of `search_assets` and reported as not found by `get_asset`, and `browse_asset_directories` shows only its directories and the directories above them.
+
+An asset in several directories counts as accessible when any of them is, the rule the DAM's asset grid uses; `get_asset` then lists only the accessible ones, and `search_assets` `directory_id` only matches an accessible directory. The DAM's own REST download endpoint is stricter: it checks only the asset's first directory, so `get_asset` can return a `download_url` for an asset whose REST download would be refused.
+
+### `search_assets`
+Search DAM assets with generic filters and pagination. Each asset includes `id`, `file_name`, `file_type`, `mime_type`, `file_size` and `path`.
+
+| Field | Type | Notes |
+|---|---|---|
+| `filters` | `array` | Filters over asset columns (`id`, `file_name`, `file_type`, `extension`, `mime_type`, `file_size`, `path`, `created_at`, `updated_at`). See [Query Operators](#query-operators). |
+| `tag` | `string` | Only assets with a tag whose name contains this text. `%` and `_` match literally. |
+| `directory_id` | `integer` | Only assets in this directory (1 to 2147483647). |
+| `limit` | `integer` | Default `25`, max `100`. |
+| `cursor` | `string` | Pagination cursor. |
+
+### `get_asset`
+Fetch one asset by ID (an integer from 1 to 2147483647) with its `meta_data`, `tags`, custom `properties`, `directories` and `linked_resources` (the products and categories it is assigned to). A missing asset returns a translated error.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | `integer` (required) | Asset ID, from `search_assets`. |
+| `include_download_url` | `boolean` | Default `false`. Adds `download_url`, valid for 10 minutes, and `download_url_expires_in`. |
+
+The download URL is signed by the asset's own disk when it can sign URLs (a presigned URL on S3, a signed serve URL on a local disk with `serve` enabled); otherwise the DAM's signed download route is used. `download_url` is `null` when the file is missing or the installed DAM version has no signed download route. Anyone holding the URL can download the file until it expires, so it is only returned to callers with the `dam.asset.download` permission and is left out for others.
+
+### `browse_asset_directories`
+The DAM directory tree. Each directory has `id`, `name`, `asset_count` (the assets directly in it) and `children`; directories on the last requested level have no `children` key. The tree is loaded with one query per level.
+
+| Field | Type | Notes |
+|---|---|---|
+| `parent_id` | `integer` | Directory to start from (1 to 2147483647). Omit to start at the root. A missing directory returns a translated error. |
+| `depth` | `integer` | Levels to include, `1` to `5`. Default `2`. |
+
+For a role limited to some directories, a directory shown only because it leads to one of them reports an `asset_count` of `0`.
+
+---
+
 ## Developer Tools
 
 ### `dev_tools`
@@ -226,6 +265,9 @@ A `field` must be a column of the searched table, a JSON path into one (`values-
 | `upsert_currencies` | `settings.currencies.create` / `settings.currencies.edit` |
 | `search_jobs` | `data_transfer` |
 | `get_job_execution` | `data_transfer.job_tracker` |
+| `search_assets` | `dam.asset` |
+| `get_asset` | `dam.asset.view` (`dam.asset.download` for `download_url`) |
+| `browse_asset_directories` | `dam.directory` |
 | `dev_tools`, `run_skill`, `get_app_info`, `get_database_schema`, `run_database_query`, `read_logs`, dynamic skills | Full access role |
 
 Over HTTP, the developer tools and dynamic skills are only served when `MCP_REMOTE_DEVELOPER_TOOLS=true`.

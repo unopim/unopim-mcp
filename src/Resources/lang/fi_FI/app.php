@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Työn suoritusta ei löytynyt.',
         ],
+        'get-asset' => [
+            'not-found' => 'Mediatiedostoa [:id] ei löytynyt.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Mediatiedostojen kansiota [:id] ei löytynyt.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Valuutta [:code] on kanavan käytössä, eikä sitä voi poistaa käytöstä.',
         ],

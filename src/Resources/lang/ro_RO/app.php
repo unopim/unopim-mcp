@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Execuția jobului nu a fost găsită.',
         ],
+        'get-asset' => [
+            'not-found' => 'Resursa [:id] nu a fost găsită.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Directorul de resurse [:id] nu a fost găsit.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Moneda [:code] este folosită de un canal și nu poate fi dezactivată.',
         ],

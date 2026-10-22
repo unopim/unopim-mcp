@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'L\'exécution de la tâche est introuvable.',
         ],
+        'get-asset' => [
+            'not-found' => 'La ressource [:id] est introuvable.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Le répertoire de ressources [:id] est introuvable.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'La devise [:code] est utilisée par un canal et ne peut pas être désactivée.',
         ],

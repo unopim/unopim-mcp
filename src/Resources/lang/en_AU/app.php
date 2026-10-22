@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Job execution not found.',
         ],
+        'get-asset' => [
+            'not-found' => 'Asset [:id] not found.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Asset directory [:id] not found.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Currency [:code] is used by a channel and cannot be disabled.',
         ],

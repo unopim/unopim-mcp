@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Execução do job não encontrada.',
         ],
+        'get-asset' => [
+            'not-found' => 'Ativo [:id] não encontrado.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Diretório de ativos [:id] não encontrado.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'A moeda [:code] é usada por um canal e não pode ser desativada.',
         ],

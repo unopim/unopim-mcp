@@ -61,6 +61,32 @@ it('maps currency and data transfer tools to their own permissions', function ()
         ->and(canCallTool('search_currencies'))->toBeFalse();
 });
 
+it('maps the dam tools to the dam package permissions', function () {
+    actingAsAdminWith('custom', ['dam', 'dam.asset', 'dam.asset.view', 'dam.directory']);
+
+    expect(canCallTool('search_assets'))->toBeTrue()
+        ->and(canCallTool('get_asset'))->toBeTrue()
+        ->and(canCallTool('browse_asset_directories'))->toBeTrue();
+});
+
+it('checks the permission that matches each dam tool', function () {
+    actingAsAdminWith('custom', ['dam', 'dam.asset']);
+
+    expect(canCallTool('search_assets'))->toBeTrue()
+        ->and(canCallTool('get_asset'))->toBeFalse()
+        ->and(canCallTool('browse_asset_directories'))->toBeFalse();
+});
+
+it('keeps the dam tools away from an admin without dam access', function (string $toolName) {
+    actingAsAdminWith('custom', ['catalog', 'catalog.products', 'settings']);
+
+    expect(canCallTool($toolName))->toBeFalse();
+})->with([
+    'search_assets',
+    'get_asset',
+    'browse_asset_directories',
+]);
+
 it('requires full access for a tool it has no permission mapping for', function () {
     actingAsAdminWith('custom', ['catalog', 'catalog.products', 'settings']);
 

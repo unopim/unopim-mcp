@@ -3,7 +3,7 @@
 namespace Webkul\MCP\Registry;
 
 use Laravel\Mcp\Server\Tool;
-use Webkul\DAM\Models\Asset;
+use Webkul\MCP\Services\DamAccess;
 use Webkul\MCP\Tools\Catalog\AttributeFamilySearchTool;
 use Webkul\MCP\Tools\Catalog\AttributeFamilyUpsertTool;
 use Webkul\MCP\Tools\Catalog\AttributeGroupSearchTool;
@@ -111,7 +111,7 @@ class ToolRegistry
      */
     protected static function damTools(): array
     {
-        if (! class_exists(Asset::class)) {
+        if (! DamAccess::installed()) {
             return [];
         }
 

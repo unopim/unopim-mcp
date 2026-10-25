@@ -4,12 +4,12 @@ namespace Webkul\MCP\Tools\Dam;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
-use Webkul\DAM\Models\Directory;
-use Webkul\MCP\Services\DamDirectoryAccess;
+use Webkul\MCP\Services\DamAccess;
 use Webkul\MCP\Tools\BaseMcpTool;
 
 #[IsReadOnly]
@@ -31,7 +31,7 @@ class DirectoryTreeTool extends BaseMcpTool
     public string $name = 'browse_asset_directories';
 
     public function __construct(
-        protected DamDirectoryAccess $directoryAccess
+        protected DamAccess $dam
     ) {}
 
     /**
@@ -47,7 +47,7 @@ class DirectoryTreeTool extends BaseMcpTool
 
         $depth = (int) ($validated['depth'] ?? 2);
         $parentId = isset($validated['parent_id']) ? (int) $validated['parent_id'] : null;
-        $viewable = $this->directoryAccess->viewableIds();
+        $viewable = $this->dam->viewableIds();
 
         if ($parentId !== null && ! $this->directoryQuery($viewable)->whereKey($parentId)->exists()) {
             return Response::error(trans('mcp::app.tools.browse-asset-directories.not-found', ['id' => $parentId]));
@@ -67,12 +67,12 @@ class DirectoryTreeTool extends BaseMcpTool
                 break;
             }
 
-            $levels[] = $directories->groupBy(fn (Directory $directory): int => (int) $directory->parent_id);
+            $levels[] = $directories->groupBy(fn (Model $directory): int => (int) $directory->parent_id);
             $parentIds = $directories->modelKeys();
         }
 
         return Response::json([
-            'directories' => $this->nodes($levels, 0, $parentId, $depth, $this->directoryAccess->accessibleIds()),
+            'directories' => $this->nodes($levels, 0, $parentId, $depth, $this->dam->accessibleIds()),
         ]);
     }
 
@@ -83,7 +83,7 @@ class DirectoryTreeTool extends BaseMcpTool
      */
     protected function directoryQuery(?array $viewable): Builder
     {
-        $query = Directory::query();
+        $query = $this->dam->directories();
 
         return $viewable === null ? $query : $query->whereIn('id', $viewable);
     }
@@ -93,14 +93,14 @@ class DirectoryTreeTool extends BaseMcpTool
      * requested depth. Each level is grouped by parent id, with 0 for the root. A directory
      * the caller may see only as the way to an accessible one reports no assets.
      *
-     * @param  list<Collection<int, Collection<int, Directory>>>  $levels
+     * @param  list<Collection<int, Collection<int, Model>>>  $levels
      * @param  list<int>|null  $accessible
      * @return list<array<string, mixed>>
      */
     protected function nodes(array $levels, int $level, ?int $parentId, int $depth, ?array $accessible): array
     {
         return ($levels[$level][$parentId ?? 0] ?? collect())
-            ->map(fn (Directory $directory): array => [
+            ->map(fn (Model $directory): array => [
                 'id' => $directory->id,
                 'name' => $directory->name,
                 'asset_count' => $accessible === null || in_array($directory->id, $accessible, true)

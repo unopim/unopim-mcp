@@ -3,6 +3,7 @@
 namespace Webkul\MCP\Tools\Dam;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -11,9 +12,7 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Symfony\Component\HttpFoundation\HeaderUtils;
-use Webkul\DAM\Models\Asset;
-use Webkul\DAM\Models\Directory;
-use Webkul\MCP\Services\DamDirectoryAccess;
+use Webkul\MCP\Services\DamAccess;
 use Webkul\MCP\Tools\BaseMcpTool;
 
 #[IsReadOnly]
@@ -40,7 +39,7 @@ class AssetGetTool extends BaseMcpTool
     public string $name = 'get_asset';
 
     public function __construct(
-        protected DamDirectoryAccess $directoryAccess
+        protected DamAccess $dam
     ) {}
 
     /**
@@ -55,13 +54,13 @@ class AssetGetTool extends BaseMcpTool
             'include_download_url' => ['nullable', 'boolean'],
         ]);
 
-        $accessible = $this->directoryAccess->accessibleIds();
+        $accessible = $this->dam->accessibleIds();
 
         $inAccessibleDirectories = fn ($directories) => $accessible === null
             ? $directories
             : $directories->whereIn('dam_directories.id', $accessible);
 
-        $query = Asset::with(['tags', 'properties', 'directories' => $inAccessibleDirectories, 'resources']);
+        $query = $this->dam->assets()->with(['tags', 'properties', 'directories' => $inAccessibleDirectories, 'resources']);
 
         if ($accessible !== null) {
             $query->whereHas('directories', $inAccessibleDirectories);
@@ -119,9 +118,9 @@ class AssetGetTool extends BaseMcpTool
      * download route is used, when the installed DAM version registers it. Null when
      * the file is missing or no signed URL can be built.
      */
-    protected function downloadUrl(Asset $asset): ?string
+    protected function downloadUrl(Model $asset): ?string
     {
-        $storage = Storage::disk(Directory::getAssetDisk());
+        $storage = Storage::disk($this->dam->assetDisk());
 
         if (! $storage->exists($asset->path)) {
             return null;

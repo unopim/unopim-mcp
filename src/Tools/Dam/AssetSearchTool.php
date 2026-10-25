@@ -6,8 +6,7 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
-use Webkul\DAM\Models\Asset;
-use Webkul\MCP\Services\DamDirectoryAccess;
+use Webkul\MCP\Services\DamAccess;
 use Webkul\MCP\Services\UnoPimQueryBuilder;
 use Webkul\MCP\Tools\BaseMcpTool;
 
@@ -31,7 +30,7 @@ class AssetSearchTool extends BaseMcpTool
 
     public function __construct(
         protected UnoPimQueryBuilder $queryBuilder,
-        protected DamDirectoryAccess $directoryAccess
+        protected DamAccess $dam
     ) {}
 
     /**
@@ -50,7 +49,7 @@ class AssetSearchTool extends BaseMcpTool
             'cursor' => ['nullable', 'string'],
         ]);
 
-        $query = Asset::query();
+        $query = $this->dam->assets();
 
         if (! empty($validated['filters'])) {
             $this->queryBuilder->applyFilters($query, $validated['filters']);
@@ -63,7 +62,7 @@ class AssetSearchTool extends BaseMcpTool
         }
 
         $directoryId = empty($validated['directory_id']) ? null : (int) $validated['directory_id'];
-        $accessible = $this->directoryAccess->accessibleIds();
+        $accessible = $this->dam->accessibleIds();
 
         if ($directoryId !== null || $accessible !== null) {
             $query->whereHas('directories', fn ($directories) => $directories

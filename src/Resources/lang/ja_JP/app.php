@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'ジョブの実行が見つかりません。',
         ],
+        'get-asset' => [
+            'not-found' => 'アセット [:id] が見つかりません。',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'アセットディレクトリ [:id] が見つかりません。',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => '通貨 [:code] はチャネルで使用されているため、無効にできません。',
         ],

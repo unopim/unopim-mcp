@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Ажлын гүйцэтгэл олдсонгүй.',
         ],
+        'get-asset' => [
+            'not-found' => 'Хөрөнгө [:id] олдсонгүй.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Хөрөнгийн хавтас [:id] олдсонгүй.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => '[:code] валютыг суваг ашиглаж байгаа тул идэвхгүй болгох боломжгүй.',
         ],

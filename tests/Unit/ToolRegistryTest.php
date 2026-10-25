@@ -1,5 +1,6 @@
 <?php
 
+use Webkul\DAM\Models\Asset;
 use Webkul\MCP\Registry\ToolRegistry;
 use Webkul\MCP\Tools\Catalog\AttributeFamilySearchTool;
 use Webkul\MCP\Tools\Catalog\AttributeFamilyUpsertTool;
@@ -27,10 +28,10 @@ use Webkul\MCP\Tools\Settings\CurrencyUpsertTool;
 use Webkul\MCP\Tools\Settings\SettingSearchTool;
 use Webkul\MCP\Tools\Settings\SettingUpsertTool;
 
-it('returns exactly 25 registered tools', function () {
+it('returns exactly 25 registered tools, plus 3 when the dam package is installed', function () {
     $tools = ToolRegistry::tools();
 
-    expect($tools)->toHaveCount(25);
+    expect($tools)->toHaveCount(class_exists(Asset::class) ? 28 : 25);
 });
 
 it('contains all catalog tools', function () {
@@ -80,6 +81,8 @@ it('contains all dev tools', function () {
 
 it('registers every tool class shipped in the package', function () {
     $shipped = collect(glob(__DIR__.'/../../src/Tools/*/*.php'))
+        // DAM tools are only registered when the optional unopim/dam package is installed.
+        ->reject(fn (string $path): bool => ! class_exists(Asset::class) && basename(dirname($path)) === 'Dam')
         ->map(fn (string $path): string => basename($path, '.php'))
         // DynamicSkillTool is instantiated per SKILL.md at runtime, not registered statically.
         ->reject(fn (string $class): bool => $class === 'DynamicSkillTool')

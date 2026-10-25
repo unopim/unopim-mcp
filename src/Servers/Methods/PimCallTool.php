@@ -234,7 +234,8 @@ class PimCallTool extends BaseCallTool
 
     /**
      * The UnoPim ACL permission each read tool requires, and the fallback for upsert
-     * tools whose arguments do not identify a target.
+     * tools whose arguments do not identify a target. The DAM tools use the ACL keys of the
+     * optional unopim/dam package.
      *
      * @return array<string, string>
      */
@@ -260,6 +261,9 @@ class PimCallTool extends BaseCallTool
             'upsert_currencies' => 'settings.currencies.create',
             'search_jobs' => 'data_transfer',
             'get_job_execution' => 'data_transfer.job_tracker',
+            'search_assets' => 'dam.asset',
+            'get_asset' => 'dam.asset.view',
+            'browse_asset_directories' => 'dam.directory',
         ];
     }
 
@@ -295,6 +299,9 @@ class PimCallTool extends BaseCallTool
             'search_currencies',
             'search_jobs',
             'get_job_execution',
+            'search_assets',
+            'get_asset',
+            'browse_asset_directories',
         ];
 
         if (! in_array($toolName, $readOnlyTools)) {

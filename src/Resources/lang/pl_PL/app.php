@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Nie znaleziono wykonania zadania.',
         ],
+        'get-asset' => [
+            'not-found' => 'Nie znaleziono zasobu [:id].',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Nie znaleziono katalogu zasobów [:id].',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Waluta [:code] jest używana przez kanał i nie można jej wyłączyć.',
         ],

@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Eksekusi pekerjaan tidak ditemukan.',
         ],
+        'get-asset' => [
+            'not-found' => 'Aset [:id] tidak ditemukan.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Direktori aset [:id] tidak ditemukan.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Mata uang [:code] digunakan oleh sebuah kanal dan tidak dapat dinonaktifkan.',
         ],

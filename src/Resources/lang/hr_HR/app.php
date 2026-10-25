@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'Izvršavanje posla nije pronađeno.',
         ],
+        'get-asset' => [
+            'not-found' => 'Resurs [:id] nije pronađen.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Direktorij resursa [:id] nije pronađen.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => 'Valuta [:code] koristi se u kanalu i ne može se onemogućiti.',
         ],

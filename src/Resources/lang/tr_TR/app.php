@@ -18,6 +18,12 @@ return [
         'job-execution' => [
             'not-found' => 'İş yürütmesi bulunamadı.',
         ],
+        'get-asset' => [
+            'not-found' => 'Varlık [:id] bulunamadı.',
+        ],
+        'browse-asset-directories' => [
+            'not-found' => 'Varlık dizini [:id] bulunamadı.',
+        ],
         'upsert-currencies' => [
             'can-not-disable' => '[:code] para birimi bir kanal tarafından kullanıldığı için devre dışı bırakılamaz.',
         ],
